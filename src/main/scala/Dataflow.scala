@@ -4,14 +4,15 @@ import chisel3._
 import chisel3.util._
 
 class DataflowIO() extends Bundle {
-    val instrRegIO = Flipped(new InstructionRegIO)
-    val dMemIO = Flipped(new DMemoryIO)
+    //val instrRegIO = Flipped(new InstructionRegIO)
+    val dMemIO = Flipped(new MemoryIO)
+    val iMemIO = Flipped(new MemoryIO)
 } 
 
 class Dataflow() extends Module {
     val io = IO(new DataflowIO)
 
-    val instructionReg = Module(new InstructionReg("/filepath"))
+    //val instructionReg = Module(new InstructionReg("/filepath")) maybe use this for testing put it in the core
     val immGen = Module(new ImmGen)
     val control = Module(new Control)
     val regFile = Module(new RegFile)
@@ -19,11 +20,14 @@ class Dataflow() extends Module {
 
     val pc = Reg(UInt(32.W)) //32 bit so< 4 byte instructions TODO: should it be init to 0?
 
-    
+    //make initialisation phase? 
 
     //fetch instruction
-    io.instrRegIO.inst_addr := pc
-    val inst = instructionReg.io.inst
+    io.iMemIO.req.bits.addr := pc
+    io.iMemIO.req.valid := true.B
+    io.iMemIO.req.bits.mask := 0.U
+    io.iMemIO.req.bits.data := DontCare
+    val inst = io.iMemIO.resp.bits.data
 
     //decode instruction
     control.io.inst := inst
@@ -77,11 +81,10 @@ class Dataflow() extends Module {
             Control.LD_LB  -> (memrdata(7,0).asSInt),
             Control.LD_LBU -> (memrdata(7,0).zext)
         ))
-    //depending on LD you need to sign/0 extend
 
     //write back
-    val regFile.io.waddr = inst(11,7)
-    /* regFile.io.wen = control something */
-    /* val regFile.io.wdata = dRData or  */
+    val regFile.io.waddr = inst(11,7)       //rd part of instruction
+    regFile.io.wen := control.io.ldtype.orR
+    val regFile.io.wdata = rdata
     
 }
