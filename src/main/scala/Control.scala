@@ -21,18 +21,18 @@ object Control {
     val Br = 1.U
 
     /*store type*/
-    val ST_XX = 0.U
-    val ST_SW = 1.U
-    val ST_SH = 2.U
-    val ST_SB = 3.U 
+    val ST_XX = 0.U(2.W)
+    val ST_SW = 1.U(2.W)
+    val ST_SH = 2.U(2.W)
+    val ST_SB = 3.U(2.W)
 
     /*load type*/
-    val LD_XX = 0.U
-    val LD_LW = 1.U
-    val LD_LH = 2.U
-    val LD_LHU = 3.U
-    val LD_LB = 4.U
-    val LD_LBU = 5.U
+    val LD_XX = 0.U(3.W)
+    val LD_LW = 1.U(3.W)
+    val LD_LH = 2.U(3.W)
+    val LD_LHU = 3.U(3.W)
+    val LD_LB = 4.U(3.W)
+    val LD_LBU = 5.U(3.W)
 //                     ALU op
 //                      |    ALU_op2
     val default = List(ALU.XXX_ALU, op2Imm, ImmGen.X, Pl4, ST_XX, LD_XX)

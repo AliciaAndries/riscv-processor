@@ -25,12 +25,13 @@ class Memory extends Module {
     //chapter 14
     val io = IO(new MemoryIO)
 
-    val mem = SyncReadMem(256, Vec(4, UInt(8.W)))
+    // val mem = SyncReadMem(256, Vec(4, UInt(8.W)))
+    val mem = SyncReadMem(1, Vec(4, UInt(8.W)))
 
-    val aligned_addr = (io.req.bits.addr >> 2).asUInt
+    val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
     val valid_addr = aligned_addr(7,0)
-    val data = VecInit(io.req.bits.data(31,24), io.req.bits.data(23,16), io.req.bits.data(15,8),io.req.bits.data(7,0))
-    
+    //val data = VecInit(io.req.bits.data(31,24), io.req.bits.data(23,16), io.req.bits.data(15,8), io.req.bits.data(7,0))
+    val data = VecInit(io.req.bits.data(7,0), io.req.bits.data(15,8), io.req.bits.data(23,16), io.req.bits.data(31,24))
     val wen = io.req.bits.mask.orR && io.req.valid
     val ren = io.req.valid && !wen
 
@@ -41,10 +42,11 @@ class Memory extends Module {
 
     //only write when wen is true
     when(wen){
-        mem.write(valid_addr, data, io.req.bits.mask.toBools)
+        mem.write(valid_addr, data, io.req.bits.mask.asBools)
     }.elsewhen(ren) {
         val data = mem.read(valid_addr,ren)
-        io.resp.bits.data := Cat(data.asUInt)//.reverse
-        //io.resp.valid := Mux(data(0) =/= 0.U, true.B, false.B)
+        //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
+        io.resp.bits.data := Cat(data(3), data(2), data(1), data(0))
+        io.resp.valid := true.B
     }
 }
