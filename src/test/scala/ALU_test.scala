@@ -18,9 +18,8 @@ class ALU_tester extends BasicTester {
     val (cntr, done) = Counter(true.B, insts.size)
       val rs1  = Seq.fill(insts.size)(rnd.nextInt()) map toBigInt
       val rs2  = Seq.fill(insts.size)(rnd.nextInt()) map toBigInt
-      val count = RegInit(0.U(8.W))
-      count := count + 1.U
-      val line = VecInit(compares)(count)
+
+      val line = VecInit(compares)(cntr)
       val aluc = line(13,10)
       
 

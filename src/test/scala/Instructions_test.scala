@@ -22,7 +22,8 @@ object TestInst {
             Cat(SUB_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
             Cat(OR_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
             Cat(AND_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
-            Cat(ADD_ALU, op2Reg,ImmGen.B, Br, ST_XX, LD_XX)
+            Cat(ADD_ALU, op2Reg,ImmGen.B, Br, ST_XX, LD_XX),
+            Cat(ADD_ALU, op2Imm, ImmGen.I, Pl4, ST_XX, LD_XX)
             )
 
     val insts : Seq[UInt]  = Seq(
@@ -32,6 +33,7 @@ object TestInst {
             Cat(Funct7.S, rand_rs2, rand_rs1, Funct3.ADD, rand_rd, Opcode.RTYPE),
             Cat(Funct7.U, rand_rs2, rand_rs1, Funct3.OR, rand_rd, Opcode.RTYPE),
             Cat(Funct7.U, rand_rs2, rand_rs1, Funct3.AND, rand_rd, Opcode.RTYPE),
-            Cat(rand_fn7, rand_rs2, rand_rs1, Funct3.BEQ, rand_rd, Opcode.BRANCH)
+            Cat(rand_fn7, rand_rs2, rand_rs1, Funct3.BEQ, rand_rd, Opcode.BRANCH),
+            Cat(rand_fn7, rand_rs2, rand_rs1, Funct3.ADD, rand_rd, Opcode.ITYPE)
             )
 }

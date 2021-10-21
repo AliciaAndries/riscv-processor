@@ -20,6 +20,9 @@ object Control {
     val Pl4 = 0.U
     val Br = 1.U
 
+    /*write back enable*/
+    val WB_F = 0.U
+    val WB_T = 1.U
     /*store type*/
     val ST_XX = 0.U(2.W)
     val ST_SW = 1.U(2.W)
@@ -34,21 +37,23 @@ object Control {
     val LD_LB = 4.U(3.W)
     val LD_LBU = 5.U(3.W)
 //                     ALU op
-//                      |    ALU_op2
-    val default = List(ALU.XXX_ALU, op2Imm, ImmGen.X, Pl4, ST_XX, LD_XX)
+//                      |       ALU_op2
+    val default = List(ALU.XXX_ALU, op2Imm, ImmGen.X, Pl4, ST_XX, LD_XX, WB_F)
     val mappings = Array(
             //Loads
-            LB -> List(ALU.ADD_ALU, op2Imm,ImmGen.I, Pl4, ST_XX, LD_LB),
+            LB -> List(ALU.ADD_ALU, op2Imm,ImmGen.I, Pl4, ST_XX, LD_LB, WB_T),
             //Stores
-            SB -> List(ALU.ADD_ALU, op2Imm, ImmGen.S, Pl4, ST_SB, LD_XX),
+            SB -> List(ALU.ADD_ALU, op2Imm, ImmGen.S, Pl4, ST_SB, LD_XX, WB_F),
             //Arithmetic
-            ADD -> List(ALU.ADD_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
-            SUB -> List(ALU.SUB_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
+            ADD -> List(ALU.ADD_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_T),
+            SUB -> List(ALU.SUB_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_T),
+            //Interger register-immediate
+            ADDI -> List(ALU.ADD_ALU, op2Imm, ImmGen.I, Pl4, ST_XX, LD_XX, WB_T),
             //Logical
-            OR -> List(ALU.OR_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
-            AND -> List(ALU.AND_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX),
+            OR -> List(ALU.OR_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_T),
+            AND -> List(ALU.AND_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_T),
             //Branches
-            BEQ -> List(ALU.ADD_ALU, op2Reg,ImmGen.B, Br, ST_XX, LD_XX)       //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
+            BEQ -> List(ALU.ADD_ALU, op2Reg,ImmGen.B, Br, ST_XX, LD_XX, WB_T)       //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
 
     )
 }
@@ -61,6 +66,7 @@ class ControlIO extends Bundle {
     val PCSrc = Output(Bool())
     val sttype = Output(UInt(2.W))
     val ldtype = Output(UInt(3.W))
+    val wben = Output(Bool())
 }
 
 class Control extends Module {
@@ -74,4 +80,5 @@ class Control extends Module {
     io.PCSrc        := controls(3)
     io.sttype       := controls(4)
     io.ldtype       := controls(5)
+    io.wben         := controls(6)
 }
