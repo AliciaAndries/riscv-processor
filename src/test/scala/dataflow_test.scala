@@ -11,12 +11,13 @@ class Dataflow_tester extends BasicTester{
 
     val rnd = new scala.util.Random
     def toBigInt(x: Int) = (BigInt(x >>> 1) << 1) | (x & 0x1)
-    val nr_insts = 6
+    val nr_insts = 9
 
     val imm = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<12).U(12.W)))
     //val imm = VecInit(imm_seq)
     val rs1 = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<5).U(5.W)))
-    val reg_idx = VecInit(Seq.fill(nr_insts)((rnd.nextInt(1<<5)+1).U(6.W)(4,0)))
+    val reg_idx = VecInit(Seq.fill(nr_insts)((rnd.nextInt((1<<5)-1)+1).U(5.W)))
+    
     
     val st_offset = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<12).U(12.W)))
     val base = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<5).U(5.W)))
@@ -70,9 +71,9 @@ class Dataflow_tester extends BasicTester{
     dut.io.dMemIO.resp.valid := loadvalid
     val data_to_reg = Mux(loadvalid, (loaddata >> (data_addr(1,0) << 3))(7,0), 0.U)
 
-
-    printf("count = %d, inst = %d, valid_d_out = %d, loaddata = %d, data_to_reg = %d, data_addr(1,0) = %d, wb_data = %d, alu_op1 = %d, alu_op2 = %d, aluresult = %d, raddr1 = %d, raddr2 = %d, rs1 = %d rs2 = %d\n\n",
-            cntr, VecInit(insts)(cntr), loadvalid, loaddata, data_to_reg, data_addr(1,0), dut.io.test.wb_data, dut.io.test.op1, dut.io.test.op2, dut.io.test.rdata, dut.io.test.raddr1, dut.io.test.raddr2, dut.io.test.rs1, dut.io.test.rs2)
+    assert(reg_idx(cntr) =/= 0.U)
+    printf("count = %d, inst = %d, valid_d_out = %d, loaddata = %d, data_to_reg = %d, data_addr(1,0) = %d, wb_data = %d, alu_op1 = %d, alu_op2 = %d, aluresult = %d, raddr1 = %d, raddr2 = %d, rs1 = %d rs2 = %d, rd = %d\n\n",
+            cntr, VecInit(insts)(cntr), loadvalid, loaddata, data_to_reg, data_addr(1,0), dut.io.test.wb_data, dut.io.test.op1, dut.io.test.op2, dut.io.test.rdata, dut.io.test.raddr1, dut.io.test.raddr2, dut.io.test.rs1, dut.io.test.rs2, dut.io.test.rwdata)
     when(cntr === 1.U){
         assert(data_addr === addr1)
     }
@@ -82,23 +83,23 @@ class Dataflow_tester extends BasicTester{
     when(cntr < 2.U && cntr.orR){
         assert(data_addr === Cat(Cat(Seq.fill(20)(imm(cntr)(11))), imm(cntr)) + 0.U)
     }
-    //val sum = RegInit(0.U(32.W))
+    val actual_sum = RegInit(0.U(32.W))
     when(cntr === 5.U){
         val mem1 = (mem(addr1 << 2.U) >> (addr1(1,0) << 3))(7,0)
         val sext_mem1 = Cat(Cat(Seq.fill(24)(mem1(7))), mem1)
         val mem2 = (mem(addr2 << 2.U) >> (addr2(1,0) << 3))(7,0)
         val sext_mem2 = Cat(Cat(Seq.fill(24)(mem2(7))), mem2)
-        //val sum = (mem1 + mem2) << (data_addr(1,0) << 3)
+        actual_sum := sext_mem1 + sext_mem2
         val sum = ((sext_mem1 + sext_mem2) << (data_addr(1,0) << 3))(31,0)
         printf("sum = %d, check sum = %d\n", data, sum)
         assert(data === sum)
     }
-    /* when(cntr === 8.U){
-        val isum = sum + Cat(Cat(Seq.fill(20)(imm(cntr)(11))), imm(cntr))
-        val isum_rd = isum << 
-        printf("isum = %d, check isum = %d\n", data, isum_rd)
+    when(cntr === 8.U){
+        val isum = actual_sum + Cat(Cat(Seq.fill(20)(imm(cntr-1.U)(11))), imm(cntr-1.U))
+        val isum_rd = (isum << (data_addr(1,0) << 3))(31,0)
+        printf("isum = %d, check isum = %d, isum_unshifted = %d, actual sum = %d, imm: %d\n", data, isum_rd, isum, actual_sum, imm(cntr-1.U))
         assert(data === isum_rd)
-    } */
+    }
     /* when(cntr(0)){
         val count = cntr - 3.U
         val shift = MuxLookup(mask, 2.U, Seq(

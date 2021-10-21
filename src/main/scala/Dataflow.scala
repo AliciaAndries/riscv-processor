@@ -13,6 +13,7 @@ class TestIO() extends Bundle {
     val inst = Output(UInt(32.W))
     val raddr1 = Output(UInt(5.W))
     val raddr2 = Output(UInt(5.W))
+    val rwdata = Output(UInt(5.W))
 }
 
 class DataflowIO() extends Bundle {
@@ -107,6 +108,7 @@ class Dataflow() extends Module {
 
     //write back
     regFile.io.waddr := inst(11,7)       //rd part of instruction
+    io.test.rwdata := inst(11,7)
     regFile.io.wen := control.io.wben
     regFile.io.wdata := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
     io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
