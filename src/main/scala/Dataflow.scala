@@ -5,12 +5,13 @@ import chisel3.util._
 
 class TestIO() extends Bundle {
     val wb_data = Output(UInt(32.W))
-    val rdata = Output(UInt(32.W))
+    val aluresult = Output(UInt(32.W))
+    val aluzero = Output(Bool())
+    val extended = Output(UInt(32.W))
     val op1 = Output(UInt(32.W))
     val op2 = Output(UInt(32.W))
     val rs1 = Output(UInt(32.W))
     val rs2 = Output(UInt(32.W))
-    val inst = Output(UInt(32.W))
     val raddr1 = Output(UInt(5.W))
     val raddr2 = Output(UInt(5.W))
     val rwdata = Output(UInt(5.W))
@@ -42,7 +43,6 @@ class Dataflow() extends Module {
     io.iMemIO.req.bits.mask := 0.U
     io.iMemIO.req.bits.data := DontCare
     val inst = io.iMemIO.resp.bits.data
-    io.test.inst := inst
 
     //decode instruction
     control.io.inst := inst
@@ -52,6 +52,7 @@ class Dataflow() extends Module {
     immGen.io.inst := inst
     immGen.io.immGenCtrl := control.io.immGenCtrl
     val extended = immGen.io.out
+    io.test.extended := extended
 
     //get registers
     regFile.io.raddr1 := inst(19,15)
@@ -71,12 +72,13 @@ class Dataflow() extends Module {
     io.test.op2 := Mux(control.io.aluInCtrl === Control.op2Imm, extended, rs2)
     val aluresult = alu.io.result
     val taken = alu.io.zero
+    io.test.aluzero := alu.io.zero
 
     //Branch
     val tBranchaddr = extended + pc
 
     //pc multiplexer
-    val mpc = Mux(control.io.PCSrc === Control.Br && taken === 1.B, tBranchaddr, pc + 4.U)
+    val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, pc + 4.U)
 
     //update pc
     pc := mpc
@@ -113,5 +115,5 @@ class Dataflow() extends Module {
     regFile.io.wdata := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
     io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
     //io.test.wb_data := control.io.ldtype.orR
-    io.test.rdata := aluresult
+    io.test.aluresult := aluresult
 }

@@ -11,7 +11,7 @@ class Dataflow_tester extends BasicTester{
 
     val rnd = new scala.util.Random
     def toBigInt(x: Int) = (BigInt(x >>> 1) << 1) | (x & 0x1)
-    val nr_insts = 9
+    val nr_insts = 13
 
     val imm = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<12).U(12.W)))
     //val imm = VecInit(imm_seq)
@@ -23,21 +23,24 @@ class Dataflow_tester extends BasicTester{
     val base = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<5).U(5.W)))
 
     val insts = Seq(
-        Cat(imm(0.U), rs1(0.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),                                               //give time to mem to init
-        Cat(imm(1.U), rs1(1.U), Funct3.LB, reg_idx(1.U), Opcode.LOAD),                                      //write data to register reg_idx(0.U)
-        Cat(imm(2.U), rs1(2.U), Funct3.LB, reg_idx(2.U), Opcode.LOAD),                                      //write data to register reg_idx(1.U)
-        Cat(imm(3.U), rs1(3.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),                                               //wait cycle aka load into 0.U
+        Cat(imm(0.U), rs1(0.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),                                              //give time to mem to init
+        Cat(imm(1.U), rs1(1.U), Funct3.LB, reg_idx(1.U), Opcode.LOAD),                                          //write data to register reg_idx(0.U)
+        Cat(imm(2.U), rs1(2.U), Funct3.LB, reg_idx(2.U), Opcode.LOAD),                                          //write data to register reg_idx(1.U)
+        Cat(imm(3.U), rs1(3.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),                                              //wait cycle aka load into 0.U
 
-        Cat(Funct7.U, reg_idx(1.U), reg_idx(2.U), Funct3.ADD, reg_idx(4.U), Opcode.RTYPE),                  //reg_idx(0.U) + reg_idx(1.U) to reg_idx(2.U)
-        Cat(st_offset(5.U)(11,5), reg_idx(4.U), base(5.U), Funct3.SB, st_offset(5.U)(4,0), Opcode.STORE),   //read reg_idx(2.U)
-        Cat(imm(6.U), rs1(6.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),                                               //wait cycle
+        Cat(Funct7.U, reg_idx(1.U), reg_idx(2.U), Funct3.ADD, reg_idx(4.U), Opcode.RTYPE),                      //reg_idx(0.U) + reg_idx(1.U) to reg_idx(2.U)
+        Cat(st_offset(5.U)(11,5), reg_idx(4.U), base(5.U), Funct3.SB, st_offset(5.U)(4,0), Opcode.STORE),       //read reg_idx(2.U)
+        Cat(imm(6.U), rs1(6.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),                                              //wait cycle
 
         Cat(imm(7.U), reg_idx(4.U), Funct3.ADD, reg_idx(7.U), Opcode.ITYPE),                                    //addi reg_idx(2.U) + imm
-        Cat(st_offset(8.U)(11,5), reg_idx(7.U), base(8.U), Funct3.SB, st_offset(8.U)(4,0), Opcode.STORE),   //read the result of addi
-        Cat(imm(9.U), rs1(9.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),
+        Cat(st_offset(8.U)(11,5), reg_idx(7.U), base(8.U), Funct3.SB, st_offset(8.U)(4,0), Opcode.STORE),       //read the result of addi
+        //Cat(imm(9.U), rs1(9.U), Funct3.LB, 0.U(5.W), Opcode.LOAD),
 
-        /* Cat(imm(4.U), rs1(4.U), Funct3.ADD, reg_idx(4.U), Opcode.ITYPE),                                    //BEQ, taken -> pc = 124
-        Cat(st_offset(5.U)(11,5), reg_idx(4.U), base(5.U), Funct3.SB, st_offset(5.U)(4,0), Opcode.STORE)    //BEQ, not taken -> pc = pc + 4 */
+        Cat(imm(9.U)(11), imm(9.U)(9,4), reg_idx(7.U), reg_idx(4.U), Funct3.ADD, imm(9.U)(3,0), imm(9.U)(10), Opcode.BRANCH),       //branch not taken
+                                            //reg_idx(7.0) === reg_idx(4.U) -> problem
+        Cat(imm(7.U), reg_idx(4.U), Funct3.ADD, reg_idx(10.U), Opcode.ITYPE),
+        Cat(imm(11.U)(11), imm(11.U)(9,4), reg_idx(7.U), reg_idx(10.U), Funct3.ADD, imm(11.U)(3,0), imm(11.U)(10), Opcode.BRANCH),  //branch taken
+        Cat(imm(12.U), rs1(12.U), Funct3.LB, 0.U(5.W), Opcode.LOAD)                                                                   //check if branch is taken
     )
     assert(reg_idx(1.U) =/= reg_idx(2.U))
 
@@ -73,7 +76,7 @@ class Dataflow_tester extends BasicTester{
 
     assert(reg_idx(cntr) =/= 0.U)
     printf("count = %d, inst = %d, valid_d_out = %d, loaddata = %d, data_to_reg = %d, data_addr(1,0) = %d, wb_data = %d, alu_op1 = %d, alu_op2 = %d, aluresult = %d, raddr1 = %d, raddr2 = %d, rs1 = %d rs2 = %d, rd = %d\n\n",
-            cntr, VecInit(insts)(cntr), loadvalid, loaddata, data_to_reg, data_addr(1,0), dut.io.test.wb_data, dut.io.test.op1, dut.io.test.op2, dut.io.test.rdata, dut.io.test.raddr1, dut.io.test.raddr2, dut.io.test.rs1, dut.io.test.rs2, dut.io.test.rwdata)
+            cntr, VecInit(insts)(cntr), loadvalid, loaddata, data_to_reg, data_addr(1,0), dut.io.test.wb_data, dut.io.test.op1, dut.io.test.op2, dut.io.test.aluresult, dut.io.test.raddr1, dut.io.test.raddr2, dut.io.test.rs1, dut.io.test.rs2, dut.io.test.rwdata)
     when(cntr === 1.U){
         assert(data_addr === addr1)
     }
@@ -84,6 +87,8 @@ class Dataflow_tester extends BasicTester{
         assert(data_addr === Cat(Cat(Seq.fill(20)(imm(cntr)(11))), imm(cntr)) + 0.U)
     }
     val actual_sum = RegInit(0.U(32.W))
+
+    //test add
     when(cntr === 5.U){
         val mem1 = (mem(addr1 << 2.U) >> (addr1(1,0) << 3))(7,0)
         val sext_mem1 = Cat(Cat(Seq.fill(24)(mem1(7))), mem1)
@@ -94,41 +99,42 @@ class Dataflow_tester extends BasicTester{
         printf("sum = %d, check sum = %d\n", data, sum)
         assert(data === sum)
     }
+    val prev_instr = RegInit(0.U(32.W))
+    //test addi
     when(cntr === 8.U){
+        //set prev instr for branch testing
+        prev_instr := inst_addr
+
         val isum = actual_sum + Cat(Cat(Seq.fill(20)(imm(cntr-1.U)(11))), imm(cntr-1.U))
         val isum_rd = (isum << (data_addr(1,0) << 3))(31,0)
         printf("isum = %d, check isum = %d, isum_unshifted = %d, actual sum = %d, imm: %d\n", data, isum_rd, isum, actual_sum, imm(cntr-1.U))
         assert(data === isum_rd)
     }
-    /* when(cntr(0)){
-        val count = cntr - 3.U
-        val shift = MuxLookup(mask, 2.U, Seq(
-                    "b0001".U -> 2.U,
-                    "b0010".U -> 8.U,
-                    "b0100".U -> 16.U,
-                    "b1000".U -> 24.U
-                ))
-        val sext_imm = (Cat(Cat(Seq.fill(20)(imm(count)(11))), imm(count)) << shift)(31,0)
-        val sext_st_offset = Cat(Cat(Seq.fill(20)(st_offset(cntr)(11))), st_offset(cntr)) + mem(rs1(cntr))
 
-        
-        mem(reg_idx(count)) := data
-
-        when(cntr === 3.U||cntr === 5.U){
-            printf("counter = %d, inst_addr = %d, reg_addr = %d, unshifted = %d, reg_data = %d, stdata = %d, sext_st_offset = %d, data_addr = %d, mask = %d, valid = %d\n",
-            cntr, inst_addr, reg_idx(cntr), VecInit(insts)(count)(31,20), sext_imm, data, sext_st_offset, data_addr, mask, valid)
-            
-            assert(sext_imm === data)
-            assert(sext_st_offset === data_addr)
-        }
-        when(cntr === 7.U){
-            val sum = mem(reg_idx(2.U)) + mem(reg_idx(4.U))
-            printf("counter = %d, inst_addr = %d, reg_idx = %d, sum_ov = %d sum = %d, data = %d, sext_st_offset = %d, data_addr = %d, mask = %d, valid = %d\n",
-                    cntr, inst_addr, reg_idx(cntr), sum, sum(31,0), data, sext_st_offset, data_addr, mask, valid)
-            assert(sum === data)
-            assert(sext_st_offset === data_addr)
-        }
-    } */
+    //test branching
+    //not taken
+    when(cntr === 9.U){
+        printf("taken = %d\n", dut.io.test.aluzero)
+        prev_instr := inst_addr
+    }
+    //taken
+    when(cntr === 10.U){
+        assert(prev_instr + 4.U === inst_addr)
+    }
+    val extended_taken = RegInit(0.U(32.W))
+    when(cntr === 11.U){
+        printf("taken = %d\n", dut.io.test.aluzero)
+        prev_instr := inst_addr
+        extended_taken := dut.io.test.extended
+    }
+    when(cntr === 12.U){
+        val extended = Cat(Cat(Seq.fill(20)(imm(11.U)(11))), imm(11.U)(10), imm(11.U)(9,4), imm(11.U)(3,0), 0.U(1.W))
+        val inst_addr_check = prev_instr + extended
+        printf("extended = %d, extended_check = %d, ", extended_taken, extended)
+        printf("inst_addr = %d, inst_addr_check = %d\n", inst_addr, inst_addr_check)
+        assert(inst_addr_check === inst_addr)
+        assert(prev_instr + 4.U =/= inst_addr)
+    }
     when(done) { stop(); stop() } 
 }
 
