@@ -34,28 +34,19 @@ class Memory/* (pipelined: Boolean = false) */ extends Module {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-/*     if(pipelined){ */
-        val mem = SyncReadMem(256, Vec(4, UInt(8.W)))
+    val mem = SyncReadMem(256, Vec(4, UInt(8.W)))
 
-        //only write when wen is true
-        when(wen){
-            mem.write(valid_addr, data, io.req.bits.mask.asBools)
-        }.elsewhen(ren) {
-            val data = mem.read(valid_addr,ren)
-            //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
-            io.resp.bits.data := Cat(data(3), data(2), data(1), data(0))
-            io.resp.valid := true.B
-        }
-/*     } else {
-        val mem = Mem(8, Vec(4, UInt(8.W)))
+    //only write when wen is true
+    when(wen){
+        mem.write(valid_addr, data, io.req.bits.mask.asBools)
+    }.elsewhen(ren) {
+        val data = mem.read(valid_addr,ren)
+        //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
+        io.resp.bits.data := Cat(data(3), data(2), data(1), data(0))
+        io.resp.valid := true.B
+    }
+}
 
-        when(wen){
-            mem(valid_addr) = Muxdata //io.req.bits.mask.asBools
-        }.elsewhen(ren) {
-            val data = mem(valid_addr)
-            //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
-            io.resp.bits.data := Cat(data(3), data(2), data(1), data(0))
-            io.resp.valid := true.B
-        } 
-    }*/
+object Memorydriver extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Memory, args)
 }

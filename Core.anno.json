@@ -1,0 +1,20 @@
+[
+  {
+    "class":"firrtl.transforms.DedupedResult",
+    "original":"~Core|Memory",
+    "index":-1.0
+  },
+  {
+    "class":"firrtl.transforms.DedupedResult",
+    "original":"~Core|Memory_1",
+    "index":-1.0
+  },
+  {
+    "class":"firrtl.EmitCircuitAnnotation",
+    "emitter":"firrtl.VerilogEmitter"
+  },
+  {
+    "class":"firrtl.transforms.BlackBoxTargetDirAnno",
+    "targetDir":"."
+  }
+]

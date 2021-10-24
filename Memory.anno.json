@@ -1,0 +1,26 @@
+[
+  {
+    "class":"firrtl.transforms.CombinationalPath",
+    "sink":"~Memory|Memory>io_resp_valid",
+    "sources":[
+      "~Memory|Memory>io_req_valid",
+      "~Memory|Memory>io_req_bits_mask"
+    ]
+  },
+  {
+    "class":"firrtl.transforms.CombinationalPath",
+    "sink":"~Memory|Memory>io_resp_bits_data",
+    "sources":[
+      "~Memory|Memory>io_req_valid",
+      "~Memory|Memory>io_req_bits_mask"
+    ]
+  },
+  {
+    "class":"firrtl.EmitCircuitAnnotation",
+    "emitter":"firrtl.VerilogEmitter"
+  },
+  {
+    "class":"firrtl.transforms.BlackBoxTargetDirAnno",
+    "targetDir":"."
+  }
+]

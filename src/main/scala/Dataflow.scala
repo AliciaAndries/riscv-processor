@@ -5,12 +5,9 @@ import chisel3.util._
 
 class TestIO() extends Bundle {
     val wb_data = Output(UInt(32.W))
-    val aluresult = Output(UInt(32.W))
     val aluzero = Output(Bool())
-    val extended = Output(UInt(32.W))
     val op1 = Output(UInt(32.W))
     val op2 = Output(UInt(32.W))
-    val rs1 = Output(UInt(32.W))
     val rs2 = Output(UInt(32.W))
     val raddr1 = Output(UInt(5.W))
     val raddr2 = Output(UInt(5.W))
@@ -24,7 +21,7 @@ class DataflowIO() extends Bundle {
     val test = new TestIO
 } 
 
-class Dataflow() extends Module {
+class Dataflow(test : Boolean = false) extends Module {
     val io = IO(new DataflowIO)
 
     //val instructionReg = Module(new InstructionReg("/filepath")) maybe use this for testing put it in the core
@@ -33,7 +30,7 @@ class Dataflow() extends Module {
     val regFile = Module(new RegFile)
     val alu = Module(new ALU)
 
-    val pc = Reg(UInt(32.W)) //32 bit so< 4 byte instructions TODO: should it be init to 0?
+    val pc = RegInit(0.U(32.W)) //32 bit so< 4 byte instructions TODO: should it be init to 0?
 
     //make initialisation phase? 
 
@@ -52,27 +49,21 @@ class Dataflow() extends Module {
     immGen.io.inst := inst
     immGen.io.immGenCtrl := control.io.immGenCtrl
     val extended = immGen.io.out
-    io.test.extended := extended
 
     //get registers
     regFile.io.raddr1 := inst(19,15)
     regFile.io.raddr2 := inst(24,20) 
-    io.test.raddr1 := inst(19,15)
-    io.test.raddr2 := inst(24,20) 
     val rs1 = regFile.io.rs1            //always exists
     val rs2 = regFile.io.rs2            //only R&S-Type
-    io.test.rs1 := rs1
-    io.test.rs2 := rs2
 
     //ALU
     alu.io.operation := control.io.aluCtrl
     alu.io.op1 := rs1
-    io.test.op1 := rs1
     alu.io.op2 := Mux(control.io.aluInCtrl === Control.op2Imm, extended, rs2)
-    io.test.op2 := Mux(control.io.aluInCtrl === Control.op2Imm, extended, rs2)
+    
     val aluresult = alu.io.result
     val taken = alu.io.zero
-    io.test.aluzero := alu.io.zero
+    
 
     //Branch
     val tBranchaddr = extended + pc
@@ -110,10 +101,24 @@ class Dataflow() extends Module {
 
     //write back
     regFile.io.waddr := inst(11,7)       //rd part of instruction
-    io.test.rwdata := inst(11,7)
     regFile.io.wen := control.io.wben
     regFile.io.wdata := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
-    io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
-    //io.test.wb_data := control.io.ldtype.orR
-    io.test.aluresult := aluresult
+    
+    
+    if(test){
+        io.test.raddr1 := inst(19,15)
+        io.test.raddr2 := inst(24,20) 
+        io.test.rs2 := rs2
+        io.test.op1 := rs1
+        io.test.op2 := Mux(control.io.aluInCtrl === Control.op2Imm, extended, rs2)
+        io.test.aluzero := alu.io.zero
+        io.test.rwdata := inst(11,7)
+        io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
+    } else{
+        io.test <> DontCare
+    }
+}
+
+object Coredriver extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Dataflow, args)
 }

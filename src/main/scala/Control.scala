@@ -53,7 +53,7 @@ object Control {
             OR -> List(ALU.OR_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_T),
             AND -> List(ALU.AND_ALU, op2Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_T),
             //Branches
-            BEQ -> List(ALU.ADD_ALU, op2Reg,ImmGen.B, Br, ST_XX, LD_XX, WB_T)       //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
+            BEQ -> List(ALU.ADD_ALU, op2Reg,ImmGen.B, Br, ST_XX, LD_XX, WB_F)       //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
 
     )
 }
