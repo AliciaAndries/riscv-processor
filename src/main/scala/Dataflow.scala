@@ -14,11 +14,16 @@ class TestIO() extends Bundle {
     val rwdata = Output(UInt(5.W))
 }
 
+class FpgaTestIO() extends Bundle{
+    val led = Output(Bool())
+}
+
 class DataflowIO() extends Bundle {
     //val instrRegIO = Flipped(new InstructionRegIO)
     val dMemIO = Flipped(new MemoryIO)
     val iMemIO = Flipped(new MemoryIO)
     val test = new TestIO
+    val fpgatest = new FpgaTestIO
 } 
 
 class Dataflow(test : Boolean = false) extends Module {
@@ -63,7 +68,8 @@ class Dataflow(test : Boolean = false) extends Module {
     
     val aluresult = alu.io.result
     val taken = alu.io.zero
-    
+    //fpga test output
+    io.fpgatest.led := taken
 
     //Branch
     val tBranchaddr = extended + pc
@@ -119,6 +125,6 @@ class Dataflow(test : Boolean = false) extends Module {
     }
 }
 
-object Coredriver extends App{
+object Dataflowdriver extends App{
     (new chisel3.stage.ChiselStage).emitVerilog(new Dataflow, args)
 }

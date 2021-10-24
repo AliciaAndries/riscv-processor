@@ -43,6 +43,8 @@ class Dataflow_tester extends BasicTester{
         Cat(st_offset(13.U)(11,5), reg_idx(7.U), base(13.U), Funct3.SB, st_offset(13.U)(4,0), Opcode.STORE),    //read the result of load
     )
     assert(reg_idx(1.U) =/= reg_idx(2.U))
+    assert(reg_idx(7.U) =/= reg_idx(10.U))
+    assert(reg_idx(7.U) =/=reg_idx(4.U))
 
     //init memory    
     val mem = RegInit(VecInit(Seq.fill(256)(23.U(32.W))))

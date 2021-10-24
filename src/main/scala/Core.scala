@@ -5,7 +5,7 @@ import chisel3.util._
 import Instructions._
 
 class CoreIO extends Bundle {
-
+    val led = Output(Bool())
 }
 
 class Core extends Module {
@@ -13,7 +13,7 @@ class Core extends Module {
 
     val dataflow = Module(new Dataflow)
     val dMem = Module(new Memory)
-    val iMem = Module(new Memory)
+    val iMem = Module(new IMemory("test.hex"))
 
     iMem.io.req.bits.addr := dataflow.io.iMemIO.req.bits.addr
     iMem.io.req.bits.data := dataflow.io.iMemIO.req.bits.data
@@ -30,8 +30,10 @@ class Core extends Module {
 
     dataflow.io.dMemIO.resp.bits.data := dMem.io.resp.bits.data
     dataflow.io.dMemIO.resp.valid := dMem.io.resp.valid
+
+    io.led := !dataflow.io.fpgatest.led
 }
 
-object CoreNoIOdriver extends App{
+object CoreFPGAOut extends App{
     (new chisel3.stage.ChiselStage).emitVerilog(new Core, args)
 }
