@@ -15,7 +15,10 @@ class TestIO() extends Bundle {
 }
 
 class FpgaTestIO() extends Bundle{
-    val led = Output(Bool())
+    //val led = Output(Bool())
+    val pc = Output(UInt(32.W))
+    val wb = Output(UInt(32.W))
+    val zero = Output(Bool())
 }
 
 class DataflowIO() extends Bundle {
@@ -36,6 +39,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val alu = Module(new ALU)
 
     val pc = RegInit(0.U(32.W)) //32 bit so< 4 byte instructions TODO: should it be init to 0?
+    io.fpgatest.pc := pc
 
     //make initialisation phase? 
 
@@ -68,8 +72,11 @@ class Dataflow(test : Boolean = false) extends Module {
     
     val aluresult = alu.io.result
     val taken = alu.io.zero
+    io.fpgatest.zero := taken
+
     //fpga test output
-    io.fpgatest.led := taken
+    //io.fpgatest.led := taken
+    //io.fpgatest.aluresult := aluresult
 
     //Branch
     val tBranchaddr = extended + pc
@@ -109,7 +116,7 @@ class Dataflow(test : Boolean = false) extends Module {
     regFile.io.waddr := inst(11,7)       //rd part of instruction
     regFile.io.wen := control.io.wben
     regFile.io.wdata := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
-    
+    io.fpgatest.wb := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
     
     if(test){
         io.test.raddr1 := inst(19,15)

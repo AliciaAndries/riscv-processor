@@ -3,12 +3,14 @@ package core
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFileInline
+import FPGAInstructions._
+
 
 
 class MemoryReq extends Bundle {
     val addr = UInt(32.W)
     val data = UInt(32.W)
-    val mask = UInt(4.W) //one hot encoded?
+    val mask = UInt(4.W)
 }
 
 class MemoryResp extends Bundle {
@@ -61,11 +63,11 @@ class IMemory(memoryFile: String = "") extends Module {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(36, UInt(32.W))
+    val mem = SyncReadMem(32, UInt(32.W))
     
-    if (memoryFile.trim().nonEmpty) {
-        loadMemoryFromFileInline(mem, memoryFile)
-    }
+    
+    loadMemoryFromFileInline(mem, memoryFile)
+    
 
     //only write when wen is true
     when(wen){
@@ -78,8 +80,33 @@ class IMemory(memoryFile: String = "") extends Module {
     }
 }
 
+class IMemoryVec extends Module {
+    val io = IO(new MemoryIO)
+
+    val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
+    val valid_addr = aligned_addr(7,0)
+
+    //val data = Cat(io.req.bits.data(7,0), io.req.bits.data(15,8), io.req.bits.data(23,16), io.req.bits.data(31,24))
+    val wen = io.req.bits.mask.orR && io.req.valid
+    val ren = io.req.valid && !wen
+    io.resp.valid := false.B
+    io.resp.bits.data := DontCare
+
+    val mem = RegInit(beq)
+
+    //only write when wen is true
+    when(wen){
+        mem(valid_addr) := io.req.bits.data
+    }.elsewhen(ren) {
+        val data = mem(valid_addr)
+        //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
+        io.resp.bits.data := data
+        io.resp.valid := true.B
+    }
+}
+
 object IMemorydriver extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new IMemory, args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new IMemory("test.mem"), args)
 }
 
 object DMemorydriver extends App{

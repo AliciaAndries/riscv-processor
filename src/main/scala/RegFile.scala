@@ -31,6 +31,3 @@ class RegFile extends Module {
     io.rs1 := Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
     io.rs2 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
 }
-
-//what if waddr == raddr1 or raddr2? --> do you fix this with wen, do you need to fix it --> draw it mate
-        //--> see top
