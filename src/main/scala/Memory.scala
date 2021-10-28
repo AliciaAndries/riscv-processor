@@ -92,7 +92,7 @@ class IMemoryVec extends Module {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = RegInit(beq)
+    val mem = RegInit(all)
 
     //only write when wen is true
     when(wen){
