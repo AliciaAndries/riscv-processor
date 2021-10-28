@@ -94,14 +94,6 @@ class Core extends Module {
         io.same := true.B
     }
 
-    //BEQ
-    
-    
-    // io.same := Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 1.U, dataflow.io.fpgatest.zero === false.B, 
-    //                 Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 3.U, dataflow.io.fpgatest.zero === true.B, true.B))
-    // io.sum := Mux((pc_prev>>2.U)%5.U === 3.U, dataflow.io.fpgatest.pc === pc_prev + 16.U, 
-    //                 Mux(dataflow.io.fpgatest.pc.orR, dataflow.io.fpgatest.pc === pc_prev + 4.U, true.B))
-
     pc_prev := dataflow.io.fpgatest.pc
 }
 

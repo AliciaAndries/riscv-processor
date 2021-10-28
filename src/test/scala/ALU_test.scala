@@ -20,7 +20,7 @@ class ALU_tester extends BasicTester {
       val rs2  = Seq.fill(insts.size)(rnd.nextInt()) map toBigInt
 
       val line = VecInit(compares)(cntr)
-      val aluc = line(14,11)
+      val aluc = line(15,12)
       
 
       ctrl.io.inst := VecInit(insts)(cntr)
@@ -29,25 +29,48 @@ class ALU_tester extends BasicTester {
       dut.io.op1 := VecInit(rs1 map (_.U))(cntr)
       dut.io.op2 := VecInit(rs2 map (_.U))(cntr)
 
-      val sum = VecInit((rs1 zip rs2) map { case (a, b) => toBigInt(a.toInt + b.toInt).U(32.W) })
-      val sub = VecInit((rs1 zip rs2) map { case (a, b) => toBigInt(a.toInt - b.toInt).U(32.W) })
-      val and = VecInit((rs1 zip rs2) map { case (a, b) => (a & b).U(32.W) })
-      val or = VecInit((rs1 zip rs2) map { case (a, b) => (a | b).U(32.W) })
-    
+      val sum =   VecInit((rs1 zip rs2) map { case (a, b) => toBigInt(a.toInt + b.toInt).U(32.W) })
+      val sub =   VecInit((rs1 zip rs2) map { case (a, b) => toBigInt(a.toInt - b.toInt).U(32.W) })
+      val and =   VecInit((rs1 zip rs2) map { case (a, b) => (a & b).U(32.W) })
+      val or =    VecInit((rs1 zip rs2) map { case (a, b) => (a|b).U(32.W) })
+      val xor =   VecInit((rs1 zip rs2) map { case (a,b) => (a^b).U(32.W) })
+      val slt =   VecInit((rs1 zip rs2) map { case (a,b) => Mux(a.asSInt < b.asSInt, 1.U, 0.U) })
+      val sltu =  VecInit((rs1 zip rs2) map { case (a,b) => Mux(a.U(32.W) < b.U(32.W), 1.U, 0.U) })
+      val sgt =   VecInit((rs1 zip rs2) map { case (a,b) => Mux(a.asSInt > b.asSInt, 1.U, 0.U) })
+      val sgtu =  VecInit((rs1 zip rs2) map { case (a,b) => Mux(a.U(32.W) > b.U(32.W), 1.U, 0.U) })
+      val sll =   VecInit((rs1 zip rs2) map { case (a, b) => (a.U(32.W) << (b.U(32.W))(4,0)) })
+      val srl =   VecInit((rs1 zip rs2) map { case (a, b) => (a.U(32.W) >> (b.U(32.W))(4,0)) })
+      val sra =   VecInit((rs1 zip rs2) map { case (a, b) => (a.U(32.W) >> (b.U(32.W))(4,0)) })
+
+      val out = (MuxLookup(aluc, dut.io.op2,
+                    Seq(
+                      ADD_ALU -> sum(cntr),
+                      SUB_ALU -> sub(cntr),
+                      AND_ALU -> and(cntr), 
+                      OR_ALU -> or(cntr),
+                      XOR_ALU -> xor(cntr),
+                      SLT_ALU -> slt(cntr),
+                      SLTU_ALU -> sltu(cntr),
+                      SLL_ALU -> sll(cntr),
+                      SRL_ALU -> srl(cntr),
+                      SRA_ALU -> sra(cntr)
+                    )),
+                  MuxLookup(aluc, !sub(cntr).orR, 
+                    Seq(
+                      SLT_ALU -> slt(cntr)(0),
+                      SLTU_ALU -> sltu(cntr)(0),
+                      SGT_ALU -> sgt(cntr)(0),
+                      SGTU_ALU -> sgt(cntr)(0)
+                    )))
       
-      val out = (Mux(aluc === ADD_ALU, sum(cntr),
-                  Mux(aluc === SUB_ALU, sub(cntr),
-                  Mux(aluc === AND_ALU, and(cntr), or(cntr)))),
-                  Mux(sub(cntr).orR, 0.B, 1.B))
-      
-      printf("Counter: %d, OP: 0x%x, A: 0x%x, B: 0x%x, OUT: 0x%x ?= 0x%x, ZERO: 0x%x ?= 0x%x\n",
-          cntr, dut.io.operation, dut.io.op1, dut.io.op2, dut.io.result, out._1, dut.io.zero, out._2) 
+      printf("Counter: %d, OP: %d =?= %d, A: %d, B: %d, OUT: %d =?= %d, ZERO: %d =?= %d\n",
+          cntr, dut.io.operation, aluc, dut.io.op1, dut.io.op2, dut.io.result, out._1, dut.io.comp, out._2) 
 
       when(done) { stop(); stop() } 
       
       assert(ctrl.io.aluCtrl === aluc)
       assert(dut.io.result === out._1)
-      assert(dut.io.zero === out._2)
+      assert(dut.io.comp === out._2)
 }
 
 class ALUTests extends FlatSpec with Matchers {

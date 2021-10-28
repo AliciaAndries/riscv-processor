@@ -37,6 +37,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val control = Module(new Control)
     val regFile = Module(new RegFile)
     val alu = Module(new ALU)
+    val branchLogic = Module(new BranchLogic)
 
     val pc = RegInit(0.U(32.W)) //32 bit so< 4 byte instructions TODO: should it be init to 0?
     io.fpgatest.pc := pc
@@ -67,11 +68,13 @@ class Dataflow(test : Boolean = false) extends Module {
 
     //ALU
     alu.io.operation := control.io.aluCtrl
-    alu.io.op1 := rs1
-    alu.io.op2 := Mux(control.io.aluInCtrl === Control.op2Imm, extended, rs2)
+    alu.io.op1 := Mux(control.io.op2Ctrl === Control.op1Reg, rs1, pc)
+    alu.io.op2 := Mux(control.io.op2Ctrl === Control.op2Imm, extended, rs2)
     
     val aluresult = alu.io.result
-    val taken = alu.io.zero
+    branchLogic.io.comp := alu.io.comp
+    branchLogic.io.bt := control.io.bt
+    val taken = branchLogic.io.taken
     io.fpgatest.zero := taken
 
     //fpga test output
@@ -82,10 +85,9 @@ class Dataflow(test : Boolean = false) extends Module {
     val tBranchaddr = extended + pc
 
     //pc multiplexer
-    val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, pc + 4.U)
-
-    //update pc
-    pc := mpc
+    val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
+                Mux(control.io.PCSrc === Control.Jump, aluresult, 
+                Mux(control.io.PCSrc === Control.Pl0, pc, pc + 4.U)))   //TODO will this not just load forever
 
     //Memory
     //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory. --> is this correct?
@@ -114,22 +116,28 @@ class Dataflow(test : Boolean = false) extends Module {
 
     //write back
     regFile.io.waddr := inst(11,7)       //rd part of instruction
-    regFile.io.wen := control.io.wben
-    regFile.io.wdata := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
+    regFile.io.wen := control.io.wbsrc.orR
+    regFile.io.wdata := Mux(control.io.wbsrc === Control.WB_MEM, rdata.asUInt, 
+                            Mux(control.io.wbsrc === Control.WB_ALU, aluresult, pc + 4.U))
     io.fpgatest.wb := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
+
+    //update pc
+    pc := mpc
     
     if(test){
         io.test.raddr1 := inst(19,15)
         io.test.raddr2 := inst(24,20) 
         io.test.rs2 := rs2
         io.test.op1 := rs1
-        io.test.op2 := Mux(control.io.aluInCtrl === Control.op2Imm, extended, rs2)
-        io.test.aluzero := alu.io.zero
+        io.test.op2 := Mux(control.io.op2Ctrl === Control.op2Imm, extended, rs2)
+        io.test.aluzero := alu.io.comp
         io.test.rwdata := inst(11,7)
         io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
     } else{
         io.test <> DontCare
     }
+
+
 }
 
 object Dataflowdriver extends App{
