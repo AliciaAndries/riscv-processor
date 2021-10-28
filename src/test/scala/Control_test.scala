@@ -11,27 +11,31 @@ class Control_tester extends BasicTester {
 
     val (cntr, done) = Counter(true.B, insts.size)
     
-    val line = VecInit(compares)(cntr)
-    val aluc    = line(14,11)
-    val aluin   = line(10)
-    val imm     = line(9,7)
-    val mpc     = line(6)
-    val stt     = line(5,4)
-    val ldt     = line(3,1)
-    val wbsrc    = line(0)
+    val line    = VecInit(compares)(cntr)
+    val aluc    = line(20,17)
+    val aluop2  = line(16)
+    val aluop1  = line(15)
+    val imm     = line(14,12)
+    val mpc     = line(11,10)
+    val stt     = line(9,8)
+    val ldt     = line(7,5)
+    val wbsrc   = line(4,3)
+    val bt      = line(2,0)
 
     dut.io.inst := VecInit(insts)(cntr)
 
     printf("cntr = %d, aludut: %d =?= %d, aluIndut: %d =?= %d, immGendut: %d =?= %d, PCSrc: %d =?= %d, sttype: %d =?= %d, ldtype: %d =?= %d, wbsrc %d =?= %d\n",
-                cntr, aluc, dut.io.op2Ctrl, aluin, dut.io.op2Ctrl, imm, dut.io.immGenCtrl, mpc, dut.io.PCSrc, stt, dut.io.sttype, ldt, dut.io.ldtype, wbsrc, dut.io.wbsrc)
+                cntr, aluc, dut.io.aluCtrl, aluop2, dut.io.op2Ctrl, imm, dut.io.immGenCtrl, mpc, dut.io.PCSrc, stt, dut.io.sttype, ldt, dut.io.ldtype, wbsrc, dut.io.wbsrc)
 
     assert(dut.io.aluCtrl === aluc)
-    assert(dut.io.op2Ctrl === aluin)
+    assert(dut.io.op2Ctrl === aluop2)
+    assert(dut.io.op1Ctrl === aluop1)
     assert(dut.io.immGenCtrl === imm)
     assert(dut.io.PCSrc === mpc)
     assert(dut.io.sttype === stt)
     assert(dut.io.ldtype === ldt)
     assert(dut.io.wbsrc === wbsrc)
+    assert(dut.io.bt === bt)
 
     when(done) { stop(); stop() } 
 }

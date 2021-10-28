@@ -13,18 +13,18 @@ object Control {
     //TODO: what to do with XImmGen?
 
     /*ALU_op2*/
-    val op2Imm = 0.U
-    val op2Reg = 1.U
+    val op2Imm = 0.U(1.W)
+    val op2Reg = 1.U(1.W)
 
     /*ALU_op1*/
-    val op1Reg = 0.U
-    val op1PC = 1.U
+    val op1Reg = 0.U(1.W)
+    val op1PC = 1.U(1.W)
 
     /*PCSrc*/
-    val Pl4 = 0.U
-    val Br = 1.U
-    val Jump = 2.U
-    val Pl0 = 3.U
+    val Pl4 = 0.U(2.W)
+    val Br = 1.U(2.W)
+    val Jump = 2.U(2.W)
+    val Pl0 = 3.U(2.W)
 
     /*write back*/
     val WB_F = 0.U(2.W)
@@ -94,7 +94,7 @@ object Control {
             BGEU -> List(ALU.SGTU_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.GEU),
             //Unconditional jump
             JAL -> List(ALU.ADD_ALU, op2Imm, op1PC, ImmGen.J, Jump, ST_XX, LD_XX, WB_PC, Branch.XX),
-            JAL -> List(ALU.ADD_ALU, op2Imm, op1PC, ImmGen.I, Jump, ST_XX, LD_XX, WB_PC, Branch.XX)
+            JALR -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Jump, ST_XX, LD_XX, WB_PC, Branch.XX)
             
     )
 }
@@ -105,7 +105,7 @@ class ControlIO extends Bundle {
     val aluCtrl = Output(UInt(4.W))
     val op2Ctrl = Output(Bool())
     val op1Ctrl = Output(Bool())
-    val PCSrc = Output(UInt(3.W))
+    val PCSrc = Output(UInt(2.W))
     val sttype = Output(UInt(2.W))
     val ldtype = Output(UInt(3.W))
     val wbsrc = Output(UInt(2.W))
