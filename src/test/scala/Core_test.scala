@@ -10,10 +10,7 @@ class Core_tester extends BasicTester {
     
     val (cntr, done) = Counter(true.B, 32)
 
-    when(cntr === 2.U){
-      assert(dut.io.same === true.B)
-      assert(dut.io.sum === true.B)
-    }
+    printf("counter = %d, pc = %d, addi = %d, same = %d, sum = %d\n", cntr, dut.io.pc, dut.io.addi, dut.io.same, dut.io.sum)
 
     when(done) { stop(); stop() } 
 }

@@ -9,6 +9,7 @@ class CoreIO extends Bundle {
     val pc = Output(Bool())
     val sum = Output(Bool())
     val addi = Output(Bool())
+
 }
 
 class Core extends Module {
@@ -41,20 +42,67 @@ class Core extends Module {
     io.sum := (dataflow.io.fpgatest.wb === 20.U)
     io.same := dataflow.io.fpgatest.zero */
 
-/*     //LDST test
+ /*   //LDST test
     io.sum := dataflow.io.fpgatest.wb === 10.U
-    io.same := false.B */
+    io.same := true.B */
+
+    val pc_prev = RegInit(dataflow.io.fpgatest.pc)
+
+ //OR
+    when(dataflow.io.fpgatest.pc>>2.U === 2.U){
+        io.sum := (dataflow.io.fpgatest.wb === 14.U)
+        io.same := true.B
+    }
+    //SUB
+    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 5.U){
+        io.sum := (dataflow.io.fpgatest.wb === 4.U)
+        io.same := true.B
+    }
+    //AND
+    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 8.U){
+        io.sum := (dataflow.io.fpgatest.wb === 2.U)
+        io.same := true.B
+    }
+    //ADD
+    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 11.U){
+        io.sum := (dataflow.io.fpgatest.wb === 20.U)
+        io.same := true.B
+    }
+    //LDST
+    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 15.U){
+        io.sum := (dataflow.io.fpgatest.wb === 10.U)
+        io.same := true.B
+    }
+    //BEQ NT
+    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 17.U){
+        io.sum := true.B
+        io.same := dataflow.io.fpgatest.zero === false.B
+    }.elsewhen(pc_prev>>2.U === 17.U){
+        io.sum := true.B
+        io.same := pc_prev + 4.U === dataflow.io.fpgatest.pc
+    }
+    //BEQ T
+    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 19.U){
+        io.sum := true.B
+        io.same := dataflow.io.fpgatest.zero === true.B
+    }.elsewhen(pc_prev>>2.U === 19.U){
+        io.sum := pc_prev + 16.U === dataflow.io.fpgatest.pc
+        io.same := true.B
+    }
+    .otherwise{
+        io.sum := true.B
+        io.same := true.B
+    }
 
     //BEQ
-    val pc_prev = RegInit(dataflow.io.fpgatest.pc)
     
-    io.same := Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 1.U, dataflow.io.fpgatest.zero === false.B, 
-                    Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 3.U, dataflow.io.fpgatest.zero === true.B, true.B))
-    io.sum := Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 2.U, dataflow.io.fpgatest.pc === pc_prev + 4.U,
-                Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 4.U, dataflow.io.fpgatest.pc === pc_prev + 16.U, true.B))
+    
+    // io.same := Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 1.U, dataflow.io.fpgatest.zero === false.B, 
+    //                 Mux((dataflow.io.fpgatest.pc>>2.U)%5.U === 3.U, dataflow.io.fpgatest.zero === true.B, true.B))
+    // io.sum := Mux((pc_prev>>2.U)%5.U === 3.U, dataflow.io.fpgatest.pc === pc_prev + 16.U, 
+    //                 Mux(dataflow.io.fpgatest.pc.orR, dataflow.io.fpgatest.pc === pc_prev + 4.U, true.B))
 
     pc_prev := dataflow.io.fpgatest.pc
-
 }
 
 object CoreFPGAOut extends App{
