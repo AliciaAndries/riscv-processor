@@ -85,9 +85,15 @@ class Dataflow(test : Boolean = false) extends Module {
     val tBranchaddr = extended + pc
 
     //pc multiplexer
+    val ld_second_clk = RegInit(true.B)
+    
     val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
                 Mux(control.io.PCSrc === Control.Jump, aluresult, 
-                Mux(control.io.PCSrc === Control.Pl0, pc, pc + 4.U)))   //TODO will this not just load forever
+                Mux((control.io.PCSrc === Control.Pl0) && /* ld_second_clk */ false.B, pc, pc + 4.U)))   //TODO will this not just load forever
+
+    when(control.io.ldtype.orR){
+        ld_second_clk := !ld_second_clk
+    }
 
     //Memory
     //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory. --> is this correct?
@@ -117,9 +123,10 @@ class Dataflow(test : Boolean = false) extends Module {
     //write back
     regFile.io.waddr := inst(11,7)       //rd part of instruction
     regFile.io.wen := control.io.wbsrc.orR
-    regFile.io.wdata := Mux(control.io.wbsrc === Control.WB_MEM, rdata.asUInt, 
+    val wbdata = Mux(control.io.wbsrc === Control.WB_MEM, rdata.asUInt, 
                             Mux(control.io.wbsrc === Control.WB_ALU, aluresult, pc + 4.U))
-    io.fpgatest.wb := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
+    regFile.io.wdata := wbdata
+    io.fpgatest.wb := wbdata
 
     //update pc
     pc := mpc
