@@ -47,7 +47,7 @@ object Control {
     val LD_LBU = 5.U(3.W)
 //                     ALU op
 //                      |       ALU_op2
-    val default = List(ALU.XXX_ALU, op2Imm, op1Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_F, Branch.XX)
+    val default = List(ALU.XXX_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_F, Branch.XX)
     val mappings = Array(
             //Loads
             LB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LB, WB_MEM, Branch.XX),

@@ -6,6 +6,7 @@ import chisel3.util._
 class TestIO() extends Bundle {
     val wb_data = Output(UInt(32.W))
     val aluzero = Output(Bool())
+    val aluresult = Output(UInt(32.W))
     val op1 = Output(UInt(32.W))
     val op2 = Output(UInt(32.W))
     val rs2 = Output(UInt(32.W))
@@ -68,8 +69,10 @@ class Dataflow(test : Boolean = false) extends Module {
 
     //ALU
     alu.io.operation := control.io.aluCtrl
-    alu.io.op1 := Mux(control.io.op2Ctrl === Control.op1Reg, rs1, pc)
-    alu.io.op2 := Mux(control.io.op2Ctrl === Control.op2Imm, extended, rs2)
+    val aluop1 = Mux(control.io.op1Ctrl === Control.op1Reg, rs1, pc)
+    val aluop2 = Mux(control.io.op2Ctrl === Control.op2Imm, extended, rs2)
+    alu.io.op1 := aluop1
+    alu.io.op2 := aluop2
     
     val aluresult = alu.io.result
     branchLogic.io.comp := alu.io.comp
@@ -135,9 +138,10 @@ class Dataflow(test : Boolean = false) extends Module {
         io.test.raddr1 := inst(19,15)
         io.test.raddr2 := inst(24,20) 
         io.test.rs2 := rs2
-        io.test.op1 := rs1
-        io.test.op2 := Mux(control.io.op2Ctrl === Control.op2Imm, extended, rs2)
+        io.test.op1 := aluop1
+        io.test.op2 := aluop2
         io.test.aluzero := alu.io.comp
+        io.test.aluresult := alu.io.result
         io.test.rwdata := inst(11,7)
         io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
     } else{
