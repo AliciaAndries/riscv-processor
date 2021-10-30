@@ -8,6 +8,11 @@ Install java 8 or newer
 
 https://www.scala-sbt.org/download.html  
 
+### Verilator
+
+https://verilator.org/guide/latest/install.html
+(apt-get version is too old so install it from git)
+
 ### Tests
 (normally all tests can be run with "sbt test" but at the moment it gives errors that don't happen when all tests are run seperately)
 
