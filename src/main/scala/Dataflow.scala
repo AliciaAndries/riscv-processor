@@ -102,7 +102,11 @@ class Dataflow(test : Boolean = false) extends Module {
     //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory. --> is this correct?
     io.dMemIO.req.bits.addr := aluresult
     io.dMemIO.req.bits.data := rs2
-    val moffset = alu.io.result(1,0)
+
+    //W -> moffset = 0, H -> moffset = 0 or 2, B -> mmoffset =  0-3
+    val moffset = Mux(control.io.sttype === Control.ST_SW || control.io.ldtype === Control.LD_LW, 0.U,
+                    Mux(control.io.sttype === Control.ST_SH || control.io.ldtype === Control.LD_LH || control.io.ldtype === Control.LD_LHU,  
+                        alu.io.result(1,0)&"b10".U, alu.io.result(1,0)))
     val doffset = moffset << 3
     
     io.dMemIO.req.bits.data := rs2 << doffset
