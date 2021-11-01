@@ -30,6 +30,11 @@ class DataflowIO() extends Bundle {
     val fpgatest = new FpgaTestIO
 } 
 
+object PC_CONSTS {
+    val pc_init = 0x4.U(32.W)
+    val pc_expt = 0x0.U(32.W)
+}
+
 class Dataflow(test : Boolean = false) extends Module {
     val io = IO(new DataflowIO)
 
@@ -40,7 +45,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val alu = Module(new ALU)
     val branchLogic = Module(new BranchLogic)
 
-    val pc = RegInit(0.U(32.W)) //32 bit so< 4 byte instructions TODO: should it be init to 0?
+    val pc = RegInit(PC_CONSTS.pc_init) //32 bit so< 4 byte instructions TODO: should it be init to 0?
     io.fpgatest.pc := pc
 
     //make initialisation phase? 
@@ -92,7 +97,7 @@ class Dataflow(test : Boolean = false) extends Module {
     
     val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
                 Mux(control.io.PCSrc === Control.Jump, aluresult, 
-                Mux((control.io.PCSrc === Control.Pl0) && /* ld_second_clk */ false.B, pc, pc + 4.U)))   //TODO will this not just load forever
+                Mux((control.io.PCSrc === Control.Pl0), PC_CONSTS.pc_expt, pc + 4.U)))   //TODO will this not just load forever
 
     when(control.io.ldtype.orR){
         ld_second_clk := !ld_second_clk

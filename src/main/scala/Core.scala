@@ -38,14 +38,6 @@ class Core extends Module {
     io.addi := (dataflow.io.fpgatest.wb === 10.U)
     io.pc := Mux(dataflow.io.fpgatest.pc>>2.U < 32.U, dataflow.io.fpgatest.pc(2), false.B)
 
-/*     //ADD test
-    io.sum := (dataflow.io.fpgatest.wb === 20.U)
-    io.same := dataflow.io.fpgatest.zero */
-
- /*   //LDST test
-    io.sum := dataflow.io.fpgatest.wb === 10.U
-    io.same := true.B */
-
     val pc_prev = RegInit(dataflow.io.fpgatest.pc)
 
  //OR

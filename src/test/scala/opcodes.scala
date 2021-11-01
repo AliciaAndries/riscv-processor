@@ -54,13 +54,6 @@ object Funct3 {
   val OR   = BigInt("110", 2).U(3.W)
   val AND  = BigInt("111", 2).U(3.W)
   val SRL  = BigInt("101", 2).U(3.W)
-
-  val CSRRW  = BigInt("001", 2).U(3.W)
-  val CSRRS  = BigInt("010", 2).U(3.W)
-  val CSRRC  = BigInt("011", 2).U(3.W)
-  val CSRRWI = BigInt("101", 2).U(3.W)
-  val CSRRSI = BigInt("110", 2).U(3.W)
-  val CSRRCI = BigInt("111", 2).U(3.W)
 }
 
 object Funct7 {

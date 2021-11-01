@@ -47,14 +47,14 @@ object Control {
     val LD_LBU = 5.U(3.W)
 //                     ALU op
 //                      |       ALU_op2
-    val default = List(ALU.XXX_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_F, Branch.XX)
+    val default = List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_F, Branch.XX)
     val mappings = Array(
             //Loads
-            LB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LB, WB_MEM, Branch.XX),
-            LBU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LBU, WB_MEM, Branch.XX),
-            LH -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LH, WB_MEM, Branch.XX),
-            LHU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LHU, WB_MEM, Branch.XX),
-            LW -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LW, WB_MEM, Branch.XX),
+            LB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LB, WB_MEM, Branch.XX),
+            LBU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LBU, WB_MEM, Branch.XX),
+            LH -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LH, WB_MEM, Branch.XX),
+            LHU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LHU, WB_MEM, Branch.XX),
+            LW -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LW, WB_MEM, Branch.XX),
             //Stores
             SB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.S, Pl4, ST_SB, LD_XX, WB_F, Branch.XX),
             SH -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.S, Pl4, ST_SH, LD_XX, WB_F, Branch.XX),
@@ -94,7 +94,12 @@ object Control {
             BGEU -> List(ALU.SGTU_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.GEU),
             //Unconditional jump
             JAL -> List(ALU.ADD_ALU, op2Imm, op1PC, ImmGen.J, Jump, ST_XX, LD_XX, WB_PC, Branch.XX),
-            JALR -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Jump, ST_XX, LD_XX, WB_PC, Branch.XX)
+            JALR -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Jump, ST_XX, LD_XX, WB_PC, Branch.XX),
+            //FENCE pretty sure dont have to do anything
+            FENCE -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_F, Branch.XX),
+            //EBREAK && ECALL, need to stop the excecution I think
+            ECALL -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl0, ST_XX, LD_XX, WB_F, Branch.XX),
+            EBREAK -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl0, ST_XX, LD_XX, WB_F, Branch.XX)
             
     )
 }

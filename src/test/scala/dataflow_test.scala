@@ -10,8 +10,7 @@ class Dataflow_tester extends BasicTester{
     val dut = Module(new Dataflow(true))
 
     def toBigInt(x: Int) = (BigInt(x >>> 1) << 1) | (x & 0x1)
-    val nr_insts = 29
-    val NOP = Cat(0.U(12.W), 0.U(5.W), Funct3.ADD, 0.U(5.W), Opcode.ITYPE)
+    val nr_insts = 31
 
     val rnd = new scala.util.Random
     
@@ -26,10 +25,10 @@ class Dataflow_tester extends BasicTester{
     val func3_ran = VecInit(Seq.fill(nr_insts)(rnd.nextInt(1<<3).U(3.W)))
 
     val insts = Seq(
-        NOP,                                                                                                    //give time to mem to init
+        Instructions.NOP,                                                                                                    //give time to mem to init
         Cat(imm(1.U), 0.U(5.W), Funct3.LB, reg_idx(1).U(5.W), Opcode.LOAD),                                          //write data to register reg_idx(0.U)
         Cat(imm(2.U), 0.U(5.W), Funct3.LB, reg_idx(2).U(5.W), Opcode.LOAD),                                          //write data to register reg_idx(1.U)
-        NOP,                                                                                                    //
+        Instructions.NOP,                                                                                                    //
 
         Cat(Funct7.U, reg_idx(1).U(5.W), reg_idx(2).U(5.W), Funct3.ADD, reg_idx(4).U(5.W), Opcode.RTYPE),                      //reg_idx(0.U) + reg_idx(1.U) to reg_idx(2.U)
         Cat(st_offset(5.U)(11,5), reg_idx(4).U(5.W), base(5.U), Funct3.SB, st_offset(5.U)(4,0), Opcode.STORE),       //read reg_idx(2.U)
@@ -68,6 +67,9 @@ class Dataflow_tester extends BasicTester{
         Cat(st_offset(26.U)(11,5), reg_idx(22).U(5.W), base(26.U), Funct3.SH, st_offset(26.U)(4,0), Opcode.STORE),       //read
         Cat(st_offset(27.U)(11,5), reg_idx(23).U(5.W), base(27.U), Funct3.SW, st_offset(27.U)(4,0), Opcode.STORE),       //read
         Cat(st_offset(28.U)(11,5), reg_idx(24).U(5.W), base(28.U), Funct3.SW, st_offset(28.U)(4,0), Opcode.STORE),       //read
+
+        Cat(Funct12.EBREAK, 0.U(13.W), Opcode.SYSTEM),
+        Instructions.NOP
     )
 
     //init memory    
@@ -123,7 +125,7 @@ class Dataflow_tester extends BasicTester{
     }
 
     //Test the generated data_addr for the loads compared to what they should be
-    when(cntr < 2.U && pc.orR){
+    when(cntr < 2.U && cntr.orR){
         assert(data_addr === Cat(Cat(Seq.fill(20)(imm(cntr)(11))), imm(cntr)) + 0.U)
     }
     
@@ -307,6 +309,9 @@ class Dataflow_tester extends BasicTester{
         assert(stmask === mask)
     }
     //LHU and that stuff
+    when(cntr === 30.U){
+        assert(pc === 0.U)
+    }
     when(done) { stop(); stop() } 
 }
 
