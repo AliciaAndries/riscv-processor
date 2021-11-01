@@ -6,7 +6,7 @@ import org.scalatest._
 import chisel3.testers._
 
 class Core_tester extends BasicTester {
-    val dut = Module(new Core)
+    val dut = Module(new Core(new IMemoryVec))
     
     val (cntr, done) = Counter(true.B, 31)
 

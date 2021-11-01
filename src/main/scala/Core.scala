@@ -2,6 +2,7 @@ package core
 
 import chisel3._
 import chisel3.util._
+import chisel3.experimental.BaseModule
 import Instructions._
 import FPGAInstructions._
 
@@ -13,7 +14,7 @@ class CoreIO extends Bundle {
 
 }
 
-class Core extends Module {
+class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
 
     val correct_wb = VecInit(
         1.U(32.W),
@@ -53,7 +54,7 @@ class Core extends Module {
 
     val dataflow = Module(new Dataflow)
     val dMem = Module(new Memory)
-    val iMem = Module(new IMemoryVec)
+    val iMem = Module(imemory)
 
     iMem.io.req.bits.addr := dataflow.io.iMemIO.req.bits.addr
     iMem.io.req.bits.data := dataflow.io.iMemIO.req.bits.data
@@ -92,6 +93,10 @@ class Core extends Module {
     pc_prev := dataflow.io.fpgatest.pc
 }
 
-object CoreFPGAOut extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new Core, args)
+object CoreFPGAOutHardCodedInsts extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemoryVec), args)
+}
+
+object CoreFPGAOutInitMem extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemory("test.mem")), args)
 }
