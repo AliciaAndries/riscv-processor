@@ -37,4 +37,9 @@ sbt "testOnly core.DataflowTests"
 
 ### Generate Verilog
 sbt run
-(Core CoreFPGAOut generates both memory and dataflow)
+    - CoreFPGAOutHardCodedInsts has hardcoded instructions sourced from "InstructionsFpgaTests.scala". 
+        If everything is working correctly io.sum and io.same should always output true
+    - core.CoreFPGAOutInitMem has BRAM memory that is initialised with a file, the file (test.mem) should be included in the sources of the project.
+        This however isn't working yet as Vivado simply optimizes the core away when using this method.
+
+-> the generated Core.v contains the whole project

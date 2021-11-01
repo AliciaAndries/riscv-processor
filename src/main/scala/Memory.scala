@@ -51,8 +51,12 @@ class Memory extends Module {
     }
 }
 
-class IMemory(memoryFile: String = "") extends Module {
-    val io = IO(new MemoryIO)
+trait IMem{
+    val io = new MemoryIO
+}
+
+class IMemory(memoryFile: String = "") extends Module with IMem {
+    override val io = IO(new MemoryIO)
 
     val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
     val valid_addr = aligned_addr(7,0)
@@ -80,8 +84,8 @@ class IMemory(memoryFile: String = "") extends Module {
     }
 }
 
-class IMemoryVec extends Module {
-    val io = IO(new MemoryIO)
+class IMemoryVec extends Module with IMem {
+    override val io = IO(new MemoryIO)
 
     val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
     val valid_addr = aligned_addr(7,0)
