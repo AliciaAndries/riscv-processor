@@ -3,6 +3,7 @@ package core
 import chisel3._
 import chisel3.util._
 import Instructions._
+import FPGAInstructions._
 
 class CoreIO extends Bundle {
     val same = Output(Bool())
@@ -13,6 +14,41 @@ class CoreIO extends Bundle {
 }
 
 class Core extends Module {
+
+    val correct_wb = VecInit(
+        1.U(32.W),
+        225.U(32.W),
+        10.U(32.W),
+        235.U(32.W),
+        225.U(32.W),
+        117.U(32.W),
+        235.U(32.W),
+        224.U(32.W),
+        BigInt(3758096384L).U(32.W),
+        225.U(32.W),                   
+        BigInt(3774873600L).U(32.W),
+        52.U(32.W),                     //pc + 4
+        BigInt(3774873600L).U(32.W),
+        0.U(32.W),                    
+        0.U(32.W),
+        64.U(32.W),
+        1.U(32.W),
+        225.U(32.W),
+        225.U(32.W),
+        76.U(32.W),
+        225.U(32.W),
+        71.U(32.W),
+        0.U(32.W),
+        BigInt(14745600L).U(32.W),
+        255.U(32.W),
+        0.U(32.W),
+        10.U(32.W),
+        102400.U(32.W),
+        4200.U(32.W),
+        112.U(32.W),
+        0.U(32.W)
+        )
+
     val io = IO(new CoreIO)
 
     val dataflow = Module(new Dataflow)
@@ -35,56 +71,23 @@ class Core extends Module {
     dataflow.io.dMemIO.resp.bits.data := dMem.io.resp.bits.data
     dataflow.io.dMemIO.resp.valid := dMem.io.resp.valid
 
+    val (cntr, done) = Counter(true.B, 31)
+
     io.addi := (dataflow.io.fpgatest.wb === 10.U)
     io.pc := Mux(dataflow.io.fpgatest.pc>>2.U < 32.U, dataflow.io.fpgatest.pc(2), false.B)
+    val pc_prev = RegInit(0.U)
 
-    val pc_prev = RegInit(dataflow.io.fpgatest.pc)
-
- //OR
-    when(dataflow.io.fpgatest.pc>>2.U === 2.U){
-        io.sum := (dataflow.io.fpgatest.wb === 14.U)
-        io.same := true.B
-    }
-    //SUB
-    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 5.U){
-        io.sum := (dataflow.io.fpgatest.wb === 4.U)
-        io.same := true.B
-    }
-    //AND
-    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 8.U){
-        io.sum := (dataflow.io.fpgatest.wb === 2.U)
-        io.same := true.B
-    }
-    //ADD
-    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 11.U){
-        io.sum := (dataflow.io.fpgatest.wb === 20.U)
-        io.same := true.B
-    }
-    //LDST
-    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 15.U){
-        io.sum := (dataflow.io.fpgatest.wb === 10.U)
-        io.same := true.B
-    }
-    //BEQ NT
-    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 17.U){
-        io.sum := true.B
-        io.same := dataflow.io.fpgatest.zero === false.B
-    }.elsewhen(pc_prev>>2.U === 17.U){
-        io.sum := true.B
-        io.same := pc_prev + 4.U === dataflow.io.fpgatest.pc
-    }
-    //BEQ T
-    .elsewhen(dataflow.io.fpgatest.pc>>2.U === 19.U){
-        io.sum := true.B
-        io.same := dataflow.io.fpgatest.zero === true.B
-    }.elsewhen(pc_prev>>2.U === 19.U){
-        io.sum := pc_prev + 16.U === dataflow.io.fpgatest.pc
-        io.same := true.B
-    }
-    .otherwise{
-        io.sum := true.B
-        io.same := true.B
-    }
+    val wb = dataflow.io.fpgatest.wb
+    io.sum := (correct_wb(cntr) === wb)
+    io.same := MuxLookup(cntr, dataflow.io.fpgatest.pc === pc_prev + 4.U, Seq(
+                12.U -> (dataflow.io.fpgatest.pc === pc_prev - 8.U),
+                13.U -> (dataflow.io.fpgatest.pc === pc_prev + 12.U),
+                16.U -> (dataflow.io.fpgatest.pc === pc_prev - 8.U),
+                17.U -> (dataflow.io.fpgatest.pc === pc_prev + 12.U),
+                20.U -> (dataflow.io.fpgatest.pc === pc_prev - 8.U),
+                21.U -> (dataflow.io.fpgatest.pc === pc_prev +12.U),
+                30.U -> (dataflow.io.fpgatest.pc === 4200.U + 16.U)
+                ))
 
     pc_prev := dataflow.io.fpgatest.pc
 }

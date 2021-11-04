@@ -97,7 +97,7 @@ class Dataflow(test : Boolean = false) extends Module {
     
     val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
                 Mux(control.io.PCSrc === Control.Jump, aluresult, 
-                Mux((control.io.PCSrc === Control.Pl0), PC_CONSTS.pc_expt, pc + 4.U)))   //TODO will this not just load forever
+                Mux((control.io.PCSrc === Control.Pl0), PC_CONSTS.pc_expt, pc + 4.U)))
 
     when(control.io.ldtype.orR){
         ld_second_clk := !ld_second_clk
@@ -136,7 +136,7 @@ class Dataflow(test : Boolean = false) extends Module {
     regFile.io.waddr := inst(11,7)       //rd part of instruction
     regFile.io.wen := control.io.wbsrc.orR
     val wbdata = Mux(control.io.wbsrc === Control.WB_MEM, rdata.asUInt, 
-                            Mux(control.io.wbsrc === Control.WB_ALU, aluresult, pc + 4.U))
+                            Mux(control.io.wbsrc === Control.WB_PC, pc + 4.U, aluresult))
     regFile.io.wdata := wbdata
     io.fpgatest.wb := wbdata
 
