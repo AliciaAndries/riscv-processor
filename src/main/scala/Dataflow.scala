@@ -93,14 +93,17 @@ class Dataflow(test : Boolean = false) extends Module {
     val tBranchaddr = extended + pc
 
     //pc multiplexer
-    val ld_second_clk = RegInit(true.B)
+    val ld_another_clk = RegInit(true.B)
     
     val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
                 Mux(control.io.PCSrc === Control.Jump, aluresult, 
-                Mux((control.io.PCSrc === Control.Pl0), PC_CONSTS.pc_expt, pc + 4.U)))
+                Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt,
+                Mux(( control.io.PCSrc === Control.Pl0) && ld_another_clk, pc, pc + 4.U))))
 
     when(control.io.ldtype.orR){
-        ld_second_clk := !ld_second_clk
+        ld_another_clk := !ld_another_clk
+    }.otherwise{
+        ld_another_clk := true.B
     }
 
     //Memory

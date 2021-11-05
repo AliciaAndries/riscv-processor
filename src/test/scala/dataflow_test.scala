@@ -261,10 +261,14 @@ class Dataflow_tester extends BasicTester{
         mem(addr23 << 2.U) := data23
         mem(addr24 << 2.U) := data24
     }
+    when(cntr === 22.U || cntr === 24.U || cntr === 12.U){
+        assert(pc === prev_instr)
+    }
     when(cntr > 20.U && cntr < 25.U){
-        val check_addr = ldaddrs(cntr-21.U)
+        val check_addr = ldaddrs((cntr-21.U))
         printf("data_addr = %d, check_addr= %d\n", check_addr, data_addr)
         assert(check_addr === data_addr)
+        assert(true)
     }
     when(cntr === 25.U ){
         val lddata_non_ext = (data21 >> (addr21(1,0) << 3))(7,0)
@@ -308,10 +312,12 @@ class Dataflow_tester extends BasicTester{
         assert(stdata === data)
         assert(stmask === mask)
     }
-    //LHU and that stuff
+
     when(cntr === 30.U){
         assert(pc === 0.U)
     }
+
+    prev_instr := pc
     when(done) { stop(); stop() } 
 }
 

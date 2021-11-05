@@ -9,13 +9,14 @@ import Branch._
 object TestInst {
     val rnd = new scala.util.Random
     def rand_fn7 = (rnd.nextInt(1 << 7)).U(7.W)
+    def rand_fn8 = (rnd.nextInt(1 << 8)).U(8.W)
     def rand_rs2 = (rnd.nextInt((1 << 5) - 1) + 1).U(5.W)
     def rand_rs1 = (rnd.nextInt((1 << 5) - 1) + 1).U(5.W)
     def rand_fn3 = (rnd.nextInt(1 << 3)).U(3.W) 
     def rand_rd  = (rnd.nextInt((1 << 5) - 1) + 1).U(5.W)
 
 
-    //(20,17)(16)(15)(14,12)(11,10)(9,8)(7,5)(4,3)(2,0)
+    //(21,18)(17)(16)(15,13)(12,10)(9,8)(7,5)(4,3)(2,0)
     val compares = Array(
         Cat(ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LB, WB_MEM, XX),       //4,1,1,3,2,2,3,2,3
         Cat(ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LBU, WB_MEM, XX),
@@ -60,6 +61,11 @@ object TestInst {
 
         Cat(ADD_ALU, op2Imm, op1PC, ImmGen.J, Jump, ST_XX, LD_XX, WB_PC, XX),
         Cat(ADD_ALU, op2Imm, op1Reg, ImmGen.I, Jump, ST_XX, LD_XX, WB_PC, XX),
+
+        Cat(XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_F, XX),
+
+        Cat(XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, XX),
+        Cat(XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, XX),
         )
 
     val insts : Seq[UInt]  = Seq(
@@ -106,6 +112,11 @@ object TestInst {
 
         Cat(rand_fn7, rand_rs2, rand_rs1, rand_fn3, rand_rd, Opcode.JAL),               //JAL
         Cat(rand_fn7, rand_rs2, rand_rs1, Funct3.ADD, rand_rd, Opcode.JALR),            //JALR
+
+        Cat(0.U(4.W), rand_fn8, Funct5.E, Funct3.ADD, Funct5.E, Opcode.MEMORY),          //FENCE
+
+        Cat(Funct12.ECALL, Funct5.E, Funct3.ADD, Funct5.E, Opcode.SYSTEM),
+        Cat(Funct12.EBREAK, Funct5.E , Funct3.ADD, Funct5.E, Opcode.SYSTEM),
         )
 
 }

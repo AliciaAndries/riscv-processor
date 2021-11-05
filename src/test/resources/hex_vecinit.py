@@ -1,6 +1,8 @@
 import numpy as np
+import sys
 
-file2 = open('add.hex', 'r')
+file_name = str(sys.argv[1])
+file2 = open(file_name, 'r')
 
 Lines = file2.readlines()
 count = 0
@@ -20,9 +22,11 @@ for line in Lines:
     hex.append(line)
     count = count + 1
 
+file_name_hex = str(sys.argv[2])
 file1 = open('add_hex.txt', 'w')
 file1.writelines((hex))
 file1.close()
+file_name_bin = str(sys.argv[3])
 file3 = open('add_bin.txt', 'w')
 file3.writelines((bin_L))
 file3.close()

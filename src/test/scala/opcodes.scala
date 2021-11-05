@@ -56,6 +56,10 @@ object Funct3 {
   val SRL  = BigInt("101", 2).U(3.W)
 }
 
+object Funct5 {
+  val E = BigInt("00000", 2).U(5.W)
+}
+
 object Funct7 {
   val U = BigInt("0000000", 2).U(7.W)
   val S = BigInt("0100000", 2).U(7.W)

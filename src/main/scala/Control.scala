@@ -21,10 +21,11 @@ object Control {
     val op1PC = 1.U(1.W)
 
     /*PCSrc*/
-    val Pl4 = 0.U(2.W)
-    val Br = 1.U(2.W)
-    val Jump = 2.U(2.W)
-    val Pl0 = 3.U(2.W)
+    val Pl4 = 0.U(3.W)
+    val Br = 1.U(3.W)
+    val Jump = 2.U(3.W)
+    val Pl0 = 3.U(3.W)
+    val EXC = 4.U(3.W)
 
     /*write back*/
     val WB_F = 0.U(2.W)
@@ -50,11 +51,11 @@ object Control {
     val default = List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_F, Branch.XX)
     val mappings = Array(
             //Loads
-            LB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LB, WB_MEM, Branch.XX),
-            LBU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LBU, WB_MEM, Branch.XX),
-            LH -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LH, WB_MEM, Branch.XX),
-            LHU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LHU, WB_MEM, Branch.XX),
-            LW -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_LW, WB_MEM, Branch.XX),
+            LB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LB, WB_MEM, Branch.XX),
+            LBU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LBU, WB_MEM, Branch.XX),
+            LH -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LH, WB_MEM, Branch.XX),
+            LHU -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LHU, WB_MEM, Branch.XX),
+            LW -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Pl0, ST_XX, LD_LW, WB_MEM, Branch.XX),
             //Stores
             SB -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.S, Pl4, ST_SB, LD_XX, WB_F, Branch.XX),
             SH -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.S, Pl4, ST_SH, LD_XX, WB_F, Branch.XX),
@@ -98,8 +99,8 @@ object Control {
             //FENCE pretty sure dont have to do anything
             FENCE -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_F, Branch.XX),
             //EBREAK && ECALL, need to stop the excecution I think
-            ECALL -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl0, ST_XX, LD_XX, WB_F, Branch.XX),
-            EBREAK -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl0, ST_XX, LD_XX, WB_F, Branch.XX)
+            ECALL -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, Branch.XX),
+            EBREAK -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, Branch.XX)
             
     )
 }
@@ -110,7 +111,7 @@ class ControlIO extends Bundle {
     val aluCtrl = Output(UInt(4.W))
     val op2Ctrl = Output(Bool())
     val op1Ctrl = Output(Bool())
-    val PCSrc = Output(UInt(2.W))
+    val PCSrc = Output(UInt(3.W))
     val sttype = Output(UInt(2.W))
     val ldtype = Output(UInt(3.W))
     val wbsrc = Output(UInt(2.W))

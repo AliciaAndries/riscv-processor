@@ -11,7 +11,6 @@ class CoreIO extends Bundle {
     val pc = Output(Bool())
     val sum = Output(Bool())
     val addi = Output(Bool())
-
 }
 
 class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
@@ -32,21 +31,43 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
         BigInt(3774873600L).U(32.W),
         0.U(32.W),                    
         0.U(32.W),
-        64.U(32.W),
+        0.U(32.W),
         1.U(32.W),
         225.U(32.W),
         225.U(32.W),
         76.U(32.W),
         225.U(32.W),
+        225.U(32.W),
+        226.U(32.W),
+        1.U(32.W),
+        225.U(32.W),
         71.U(32.W),
         0.U(32.W),
         BigInt(14745600L).U(32.W),
         255.U(32.W),
-        0.U(32.W),
-        10.U(32.W),
+        225.U(32.W),
+        57344.U(32.W),
+        BigInt(4294959104L).U(32.W),    //already correct cause reads the same as prev ld just interprets it differently
+        BigInt(4294959104L).U(32.W),
+        57344.U(32.W),
+        BigInt(3758039040L).U(32.W),
+        BigInt(4294967288L).U(32.W),
+        BigInt(3758096400L).U(32.W),
+        BigInt(3758096384L).U(32.W),
+        0.U(32.U),
+        BigInt(4294963200L).U(32.W),
+        224.U(32.W),
+        224.U(32.W),
+        271.U(32.W),
+        BigInt(4294967264L).U(32.W),
+        BigInt(4294967266L).U(32.W),
+        0.U,
+        1.U,
+        1.U,
+        0.U,
         102400.U(32.W),
-        4200.U(32.W),
-        112.U(32.W),
+        4264.U(32.W),
+        176.U(32.W),
         0.U(32.W)
         )
 
@@ -72,7 +93,7 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
     dataflow.io.dMemIO.resp.bits.data := dMem.io.resp.bits.data
     dataflow.io.dMemIO.resp.valid := dMem.io.resp.valid
 
-    val (cntr, done) = Counter(true.B, 31)
+    val (cntr, done) = Counter(true.B, 53)
 
     io.addi := (dataflow.io.fpgatest.wb === 10.U)
     io.pc := Mux(dataflow.io.fpgatest.pc>>2.U < 32.U, dataflow.io.fpgatest.pc(2), false.B)
@@ -86,8 +107,15 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
                 16.U -> (dataflow.io.fpgatest.pc === pc_prev - 8.U),
                 17.U -> (dataflow.io.fpgatest.pc === pc_prev + 12.U),
                 20.U -> (dataflow.io.fpgatest.pc === pc_prev - 8.U),
-                21.U -> (dataflow.io.fpgatest.pc === pc_prev +12.U),
-                30.U -> (dataflow.io.fpgatest.pc === 4200.U + 16.U)
+                21.U -> (dataflow.io.fpgatest.pc === pc_prev + 12.U),
+                24.U -> (dataflow.io.fpgatest.pc === pc_prev - 8.U),
+                25.U -> (dataflow.io.fpgatest.pc === pc_prev + 12.U),
+                27.U -> (dataflow.io.fpgatest.pc === pc_prev),
+                30.U -> (dataflow.io.fpgatest.pc === pc_prev),
+                32.U -> (dataflow.io.fpgatest.pc === pc_prev),
+                41.U -> (dataflow.io.fpgatest.pc === pc_prev),
+                44.U -> (dataflow.io.fpgatest.pc === pc_prev),
+                52.U -> (dataflow.io.fpgatest.pc === 4264.U + 16.U)
                 ))
 
     pc_prev := dataflow.io.fpgatest.pc

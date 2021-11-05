@@ -20,7 +20,7 @@ class ImmGenTester extends BasicTester {
 
     val inst = VecInit(insts)(cntr)
     dut.io.inst := inst
-    val immGenCtrl = compare(14,12)
+    val immGenCtrl = compare(15,13)
     dut.io.immGenCtrl := immGenCtrl
 
     val out = dut.io.out

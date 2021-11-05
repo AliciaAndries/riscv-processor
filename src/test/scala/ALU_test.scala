@@ -20,7 +20,7 @@ class ALU_tester extends BasicTester {
       val rs2  = Seq.fill(insts.size)(rnd.nextInt()) map toBigInt
 
       val line = VecInit(compares)(cntr)
-      val aluc = line(20,17)
+      val aluc = line(21,18)
       
 
       ctrl.io.inst := VecInit(insts)(cntr)
