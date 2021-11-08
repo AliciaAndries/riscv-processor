@@ -12,22 +12,36 @@ bin_L = []
 for line in Lines:
     line = line.rstrip()
     line = str(bin(int(line, 16)))[2:].zfill(32)
-    line = "\"b" +line + "\".U,\n"
-    bin_L.append(line)
     count = count + 1
+    if count == len(Lines):
+        line = "        \"b" +line + "\".U\n"
+    else:
+        line = "        \"b" +line + "\".U,\n"
+    bin_L.append(line)
 
 for line in Lines:
     line = line.rstrip()
     line = "0x" +line + ".U,\n"
     hex.append(line)
-    count = count + 1
+    
+        
+    
 
 file_name_hex = str(sys.argv[2])
-file1 = open('add_hex.txt', 'w')
+file1 = open(file_name_hex, 'w')
 file1.writelines((hex))
 file1.close()
-file_name_bin = str(sys.argv[3])
-file3 = open('add_bin.txt', 'w')
-file3.writelines((bin_L))
+
+file_name_bin = "../../main/scala/InstructionsFpgaTests.scala"
+
+lines3_start =  ["package core\n\n",
+                 "import chisel3._\n",
+                 "import chisel3.util._\n\n",
+                 "object FPGAInstructions {\n\n",
+                 "   val all = VecInit(\n"]
+
+lines3_end =    ["    )\n", "}\n"]
+file3 = open(file_name_bin, 'w')
+file3.writelines((lines3_start+bin_L+ lines3_end))
 file3.close()
 file2.close()
