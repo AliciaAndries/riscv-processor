@@ -26,6 +26,7 @@ class DataflowIO() extends Bundle {
     //val instrRegIO = Flipped(new InstructionRegIO)
     val dMemIO = Flipped(new MemoryIO)
     val iMemIO = Flipped(new MemoryIO)
+    val io_out_of_bounds = Input(Bool()) 
     val test = new TestIO
     val fpgatest = new FpgaTestIO
 } 

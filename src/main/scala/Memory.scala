@@ -5,7 +5,10 @@ import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import FPGAInstructions._
 
-
+object MemorySize {
+    val BMemBytes = 256
+    val IMemBytes = 32
+}
 
 class MemoryReq extends Bundle {
     val addr = UInt(32.W)
@@ -38,7 +41,7 @@ class Memory extends Module {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(256, Vec(4, UInt(8.W)))
+    val mem = SyncReadMem(MemorySize.BMemBytes, Vec(4, UInt(8.W)))
 
     //only write when wen is true
     when(wen){
@@ -67,7 +70,7 @@ class IMemory(memoryFile: String = "") extends Module with IMem {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(32, UInt(32.W))
+    val mem = SyncReadMem(MemorySize.IMemBytes, UInt(32.W))
     
     
     loadMemoryFromFileInline(mem, memoryFile)
