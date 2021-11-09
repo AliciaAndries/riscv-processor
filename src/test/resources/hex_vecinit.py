@@ -15,15 +15,13 @@ for line in Lines:
     count = count + 1
     line = "        \"b" +line + "\".U,\n"
     bin_L.append(line)
-
-for x in range(20):
-    line = "        \"b00000000000000000000000000010011\".U,\n"
-    if x == 29:
-        line = "        \"b00000000000000000000000000010011\".U\n"
+    
+for x in range(200):
+    if x < 200:
+        line = "        \"b00000000000000000000000000000000\".U,\n"
+    else:
+        line = "        \"b00000000000000000000000000000000\".U\n"
     bin_L.append(line)
-    
-    
-
 
 for line in Lines:
     line = line.rstrip()
