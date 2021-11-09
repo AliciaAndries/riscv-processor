@@ -1,4 +1,4 @@
-NAME = add
+NAME = arith_hazard
 
 s_to_hex:
 	riscv32-unknown-elf-as -o $(NAME).elf -c $(NAME).s

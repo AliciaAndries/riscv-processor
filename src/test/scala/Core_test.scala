@@ -10,9 +10,8 @@ class Core_tester extends BasicTester {
     
     val (cntr, done) = Counter(true.B, 53)
 
-    printf("counter = %d, pc = %d, addi = %d, same = %d, sum = %d\n", cntr, dut.io.pc, dut.io.addi, dut.io.same, dut.io.sum)
-    assert(dut.io.sum === 1.U)
-    assert(dut.io.same === 1.U)
+    printf("counter = %d, wb = %d, pc = %d, halt = %d, pc_ex = %d, reg_input1 = %d,reg_input2 = %d, idex_rd = %d, mem_data = %d\n", 
+    cntr, dut.io.fpgatest.wb, dut.io.fpgatest.pc>>2.U, dut.io.fpgatest.halt, dut.io.fpgatest.pc_ex>>2.U,dut.io.fpgatest.reg_input1, dut.io.fpgatest.reg_input2, dut.io.fpgatest.id_ex_rd, dut.io.fpgatest.mem_data)
     when(done) { stop(); stop() } 
 }
 

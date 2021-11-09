@@ -13,11 +13,17 @@ for line in Lines:
     line = line.rstrip()
     line = str(bin(int(line, 16)))[2:].zfill(32)
     count = count + 1
-    if count == len(Lines):
-        line = "        \"b" +line + "\".U\n"
-    else:
-        line = "        \"b" +line + "\".U,\n"
+    line = "        \"b" +line + "\".U,\n"
     bin_L.append(line)
+
+for x in range(30):
+    line = "        \"b00000000000000000000000000010011\".U,\n"
+    if x == 29:
+        line = "        \"b00000000000000000000000000010011\".U\n"
+    bin_L.append(line)
+    
+    
+
 
 for line in Lines:
     line = line.rstrip()
