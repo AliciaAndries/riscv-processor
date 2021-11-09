@@ -16,10 +16,10 @@ class AddressArbiter extends Module {
 
     val ad = Wire(Bool())
     ad := false.B
-    
-    when(io.addr < BMemBytes.U){
+
+    when(io.addr < BMemBytes.U*4.U){
         ad := true.B
     }
-    io.ioReqValid := io.addr === BMemBytes.U
+    io.ioReqValid := io.addr === BMemBytes.U*4.U
     io.memReqValid := ad && io.req
 }

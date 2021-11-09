@@ -8,10 +8,9 @@ import chisel3.testers._
 class Core_tester extends BasicTester {
     val dut = Module(new Core(new IMemoryVec))
     val prev_led = RegInit(false.B)
-    val (cntr, done) = Counter(true.B, 53)
+    val (cntr, done) = Counter(true.B, 20)
 
-    printf("ioled = %d\n", dut.io.ledio)
-    assert(dut.io.ledio === !prev_led)
+    printf("ioled = %d, wb = %d\n", dut.io.ledio, dut.io.wb)
     when(done) { stop(); stop() } 
 }
 

@@ -8,6 +8,7 @@ import FPGAInstructions._
 
 class CoreIO extends Bundle {
     val ledio = Output(UInt(1.W))
+    val wb = Output(UInt(32.W))
 }
 
 class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
@@ -39,8 +40,10 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
     dataflow.io.dMemIO.resp.bits.data := dMem.io.resp.bits.data
     dataflow.io.dMemIO.resp.valid := dMem.io.resp.valid
 
-    io.ledio := Mux(addressArbiter.io.ioReqValid && !addressArbiter.io.memReqValid, dataflow.io.dMemIO.req.bits.data(1), 0.U)
+    io.ledio := Mux(addressArbiter.io.ioReqValid && !addressArbiter.io.memReqValid, dataflow.io.dMemIO.req.bits.data(0), 0.U)
     dataflow.io.io_out_of_bounds := !addressArbiter.io.ioReqValid
+
+    io.wb := dataflow.io.fpgatest.wb
 }
 
 object CoreFPGAOutHardCodedInsts extends App{

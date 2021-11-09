@@ -31,7 +31,6 @@ object ImmGen {
     val B = 3.U(3.W)
     val U = 4.U(3.W)
     val J = 5.U(3.W)
-    val C = 6.U(3.W)       //CSR also need extension -> p55
 }
 
 class ImmGenIOTest extends Bundle {
@@ -54,19 +53,17 @@ class ImmGenIO extends Bundle{
 class ImmGen extends Module {
     val io = IO(new ImmGenIO)
 
-    val b31 =       Mux(io.immGenCtrl === ImmGen.C, 0.U, io.inst(31))
+    val b31 =       io.inst(31)
     val b30to20 =   Mux(io.immGenCtrl === ImmGen.U, io.inst(30,20).asSInt, b31.asSInt) //needs to sign extend and cant mux SInt and UInt
     val b19to12 =   Mux(io.immGenCtrl =/= ImmGen.U && io.immGenCtrl =/= ImmGen.J, b31.asSInt, io.inst(19,12).asSInt)
     val b11 =       Mux(io.immGenCtrl === ImmGen.B, io.inst(7).asSInt, 
                         Mux(io.immGenCtrl === ImmGen.U, 0.asSInt,
                         Mux(io.immGenCtrl === ImmGen.J, io.inst(20).asSInt, b31.asSInt)))
-    val b10to5 =    Mux(io.immGenCtrl === ImmGen.U || io.immGenCtrl === ImmGen.C, 0.U, io.inst(30,25))
+    val b10to5 =    Mux(io.immGenCtrl === ImmGen.U, 0.U, io.inst(30,25))
     val b4to1 =     Mux(io.immGenCtrl === ImmGen.I || io.immGenCtrl === ImmGen.J, io.inst(24,21),
-                        Mux(io.immGenCtrl === ImmGen.U, 0.U, 
-                        Mux(io.immGenCtrl === ImmGen.C, io.inst(19,16), io.inst(11,8))))
+                        Mux(io.immGenCtrl === ImmGen.U, 0.U, io.inst(11,8)))
     val b0 =        Mux(io.immGenCtrl === ImmGen.I, io.inst(20), 
-                        Mux(io.immGenCtrl === ImmGen.S, io.inst(7), 
-                        Mux(io.immGenCtrl === ImmGen.C, io.inst(15), 0.U)))
+                        Mux(io.immGenCtrl === ImmGen.S, io.inst(7), 0.U))
 
     io.test.b31 := b31.asUInt
     io.test.b30to20 := b30to20.asUInt
