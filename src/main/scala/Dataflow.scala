@@ -40,7 +40,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val forwardingUnit = Module(new ForwardingUnit)
     val hazardDetection = Module(new HazardDetection)
 
-    val nop = "b00000000000000000000000000010011".U(32.W)
+    val nop = "b00000000000000000000000000110011".U(32.W)
     //halt
     val halt                = WireDefault(false.B)
     // branch/jal wires/forwarding
@@ -51,6 +51,7 @@ class Dataflow(test : Boolean = false) extends Module {
     // registers
     val pc                  = RegInit(PC_CONSTS.pc_init) //32 bit so< 4 byte instructions TODO: should it be init to 0?
     val start               = RegInit(true.B)
+    val start_decode        = RegInit(true.B)
     val inst                = RegInit(nop)
     val wb_prev_inst        = RegInit(0.U(32.W))
     val rd_prev_inst        = RegInit(0.U(5.W))
@@ -92,25 +93,29 @@ class Dataflow(test : Boolean = false) extends Module {
 
     ////////////////////////////////////////fetch instruction//////////////////////////////////////// 
     
-    val pc_current = Mux(halt || start, pc,
+    val pc_current = Mux(start, pc,
+                        Mux(halt, pc,
                         Mux(taken, tBranchaddr, 
                         Mux(control.io.PCSrc === Control.Jump, aluresult, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
-                        Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U ))))
+                        Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))))
     
-    io.iMemIO.req.bits.addr := pc_current
+    io.iMemIO.req.bits.addr := pc
     io.iMemIO.req.valid := true.B
     io.iMemIO.req.bits.mask := 0.U
     io.iMemIO.req.bits.data := DontCare
 
     pc := pc_current
-    if_id_pc := pc
+    if_id_pc := Mux(halt, if_id_pc, pc)
+
+    io.fpgatest.id_ex_rd := pc_current>>2.U
 
     start := false.B
 
     ////////////////////////////////////////decode instruction////////////////////////////////////////
 
     //hazard detection
-    inst := Mux(start, nop, io.iMemIO.resp.bits.data)   //first clockcycle say next clockcycle it also needs to be nop
+    inst := Mux(start, nop, 
+                Mux(halt, inst, io.iMemIO.resp.bits.data) )   //first clockcycle say next clockcycle it also needs to be nop
 
     io.fpgatest.decode_pc := if_id_pc >> 2.U
     io.fpgatest.decode_inst := inst
@@ -122,8 +127,6 @@ class Dataflow(test : Boolean = false) extends Module {
     hazardDetection.io.rs2 := raddr2
     hazardDetection.io.rd_prev := id_ex_rd
     hazardDetection.io.prev_is_load := id_ex_ldtype.orR
-
-    io.fpgatest.id_ex_rd := id_ex_rd
     
     halt := hazardDetection.io.nop
 
@@ -143,20 +146,20 @@ class Dataflow(test : Boolean = false) extends Module {
 
     
 
-    id_ex_rs1_addr      := Mux(halt, 0.U, raddr1)
-    id_ex_rs2_addr      := Mux(halt, 0.U, raddr2)
-    id_ex_pc            := Mux(halt, 0.U, if_id_pc)
-    id_ex_rs1           := Mux(halt, 0.U, rs1)
-    id_ex_rs2           := Mux(halt, 0.U, rs2)
-    id_ex_immgen        := Mux(halt, 0.U, extended)
-    id_ex_rd            := Mux(halt, 0.U, inst(11,7))
-    id_ex_aluCtrl       := Mux(halt, 0.U, control.io.aluCtrl)
-    id_ex_op2Ctrl       := Mux(halt, 0.U, control.io.op2Ctrl)
-    id_ex_op1Ctrl       := Mux(halt, 0.U, control.io.op1Ctrl)
-    id_ex_sttype        := Mux(halt, 0.U, control.io.sttype)
-    id_ex_ldtype        := Mux(halt, 0.U, control.io.ldtype)
-    id_ex_wbsrc         := Mux(halt, 0.U, control.io.wbsrc)
-    id_ex_bt            := Mux(halt, 0.U, control.io.bt)
+    id_ex_rs1_addr      := Mux(halt || taken, 0.U, raddr1)
+    id_ex_rs2_addr      := Mux(halt || taken, 0.U, raddr2)
+    id_ex_pc            := if_id_pc
+    id_ex_rs1           := Mux(halt || taken, 0.U, rs1)
+    id_ex_rs2           := Mux(halt || taken, 0.U, rs2)
+    id_ex_immgen        := Mux(halt || taken, 0.U, extended)
+    id_ex_rd            := Mux(halt || taken, 0.U, inst(11,7))
+    id_ex_aluCtrl       := Mux(halt || taken, 0.U, control.io.aluCtrl)
+    id_ex_op2Ctrl       := Mux(halt || taken, 0.U, control.io.op2Ctrl)
+    id_ex_op1Ctrl       := Mux(halt || taken, 0.U, control.io.op1Ctrl)
+    id_ex_sttype        := Mux(halt || taken, 0.U, control.io.sttype)
+    id_ex_ldtype        := Mux(halt || taken, 0.U, control.io.ldtype)
+    id_ex_wbsrc         := Mux(halt || taken, 0.U, control.io.wbsrc)
+    id_ex_bt            := Mux(halt || taken, 0.U, control.io.bt)
 
     io.fpgatest.halt := halt
     ////////////////////////////////////////execute////////////////////////////////////////
