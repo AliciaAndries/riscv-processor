@@ -13,6 +13,7 @@ object ForwardingUnit {
 class ForwardingUnitIO extends Bundle {
     val rs1_cur = Input(UInt(5.W))
     val rs2_cur = Input(UInt(5.W))
+    val cur_is_load = Input(Bool())
     val rd_ex_mem = Input(UInt(5.W))
     val rd_mem_wb = Input(UInt(5.W))
     val rd_wb_out = Input(UInt(5.W))
@@ -27,7 +28,7 @@ class ForwardingUnit extends Module {
                 Mux(io.rs1_cur === io.rd_mem_wb, ForwardingUnit.MEM_WB,
                 Mux(io.rs1_cur === io.rd_wb_out, ForwardingUnit.WB_OUT, ForwardingUnit.CUR))))
 
-    io.reg2 := Mux(io.rs2_cur === 0.U, ForwardingUnit.CUR,
+    io.reg2 := Mux(io.rs2_cur === 0.U || io.cur_is_load, ForwardingUnit.CUR,
                 Mux(io.rs2_cur === io.rd_ex_mem, ForwardingUnit.EX_MEM_ALU,
                 Mux(io.rs2_cur === io.rd_mem_wb, ForwardingUnit.MEM_WB,
                 Mux(io.rs2_cur === io.rd_wb_out, ForwardingUnit.WB_OUT, ForwardingUnit.CUR))))

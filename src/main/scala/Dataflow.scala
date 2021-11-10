@@ -4,20 +4,6 @@ import chisel3._
 import chisel3.util._
 import ForwardingUnit._
 
-class TestIO() extends Bundle {
-    val wb_data = Output(UInt(32.W))
-    val pc = Output(UInt(32.W))
-    val mpc = Output(UInt(32.W))
-    val aluzero = Output(Bool())
-    val aluresult = Output(UInt(32.W))
-    val op1 = Output(UInt(32.W))
-    val op2 = Output(UInt(32.W))
-    val rs2 = Output(UInt(32.W))
-    val raddr1 = Output(UInt(5.W))
-    val raddr2 = Output(UInt(5.W))
-    val rwdata = Output(UInt(5.W))
-}
-
 class FpgaTestIO() extends Bundle{
     //val led = Output(Bool())
     val pc = Output(UInt(32.W))
@@ -27,14 +13,14 @@ class FpgaTestIO() extends Bundle{
     val reg_input1 = Output(UInt(3.W))
     val reg_input2 = Output(UInt(3.W))
     val id_ex_rd = Output(UInt(5.W))
-    val mem_data = Output(UInt(32.W))
+    val decode_pc = Output(UInt(32.W))
+    val decode_inst = Output(UInt(32.W))
 }
 
 class DataflowIO() extends Bundle {
     //val instrRegIO = Flipped(new InstructionRegIO)
     val dMemIO = Flipped(new MemoryIO)
     val iMemIO = Flipped(new MemoryIO)
-    val test = new TestIO
     val fpgatest = new FpgaTestIO
 } 
 
@@ -95,16 +81,18 @@ class Dataflow(test : Boolean = false) extends Module {
     val ex_mem_ldtype        = RegInit(0.U(3.W))
     val ex_mem_wbsrc         = RegInit(0.U(2.W))
     // mem/wb
+    val mem_wb_resp_valid    = RegInit(false.B)
     val mem_wb_pc            = RegInit(0.U(32.W))
     val mem_wb_aluresult     = RegInit(0.U(32.W))
     val mem_wb_rd            = RegInit(0.U(5.W))
     val mem_wb_wbsrc         = RegInit(0.U(2.W))
+    val mem_wb_ldtype        = RegInit(0.U(3.W))
 
 
 
     ////////////////////////////////////////fetch instruction//////////////////////////////////////// 
     
-    val pc_current = Mux((start || halt), pc,
+    val pc_current = Mux(halt || start, pc,
                         Mux(taken, tBranchaddr, 
                         Mux(control.io.PCSrc === Control.Jump, aluresult, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
                         Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U ))))
@@ -123,6 +111,10 @@ class Dataflow(test : Boolean = false) extends Module {
 
     //hazard detection
     inst := Mux(start, nop, io.iMemIO.resp.bits.data)   //first clockcycle say next clockcycle it also needs to be nop
+
+    io.fpgatest.decode_pc := if_id_pc >> 2.U
+    io.fpgatest.decode_inst := inst
+
     val raddr1 = inst(19,15)
     val raddr2 = inst(24,20)
 
@@ -173,6 +165,7 @@ class Dataflow(test : Boolean = false) extends Module {
 
     forwardingUnit.io.rs1_cur := id_ex_rs1_addr
     forwardingUnit.io.rs2_cur := id_ex_rs2_addr
+    forwardingUnit.io.cur_is_load := id_ex_ldtype.orR
     forwardingUnit.io.rd_ex_mem := ex_mem_rd
     forwardingUnit.io.rd_mem_wb := mem_wb_rd
     forwardingUnit.io.rd_wb_out := rd_prev_inst
@@ -223,7 +216,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val doffset = moffset << 3
     
     io.dMemIO.req.bits.data := ex_mem_rs2 << doffset
-    io.fpgatest.mem_data := ex_mem_aluresult
+    
     io.dMemIO.req.bits.mask := MuxLookup(ex_mem_sttype, "b0000".U, 
         Array(
             Control.ST_SW -> ("b1111".U),
@@ -232,18 +225,20 @@ class Dataflow(test : Boolean = false) extends Module {
         ))
     
     io.dMemIO.req.valid := ex_mem_sttype.orR || ex_mem_ldtype.orR 
-
+    
+    mem_wb_resp_valid   := io.dMemIO.resp.valid
     mem_wb_pc           := ex_mem_pc
     mem_wb_aluresult    := ex_mem_aluresult
     mem_wb_rd           := ex_mem_rd
     mem_wb_wbsrc        := ex_mem_wbsrc
+    mem_wb_ldtype       := ex_mem_ldtype
 
 
     ////////////////////////////////////////write back////////////////////////////////////////
 
-    val memrdata = Mux(io.dMemIO.resp.valid, io.dMemIO.resp.bits.data, 0.U) >> doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
+    val memrdata = Mux(mem_wb_resp_valid, io.dMemIO.resp.bits.data, 0.U) >> doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
     
-    val rdata = MuxLookup(ex_mem_ldtype, memrdata.asSInt,
+    val rdata = MuxLookup(mem_wb_ldtype, memrdata.asSInt,
         Array(
             Control.LD_LH  -> (memrdata(15,0).asSInt),   //SInt sign extends the value
             Control.LD_LHU -> ((memrdata(15,0).zext).asSInt),    //zext is UInt feature
@@ -263,27 +258,6 @@ class Dataflow(test : Boolean = false) extends Module {
 
     io.fpgatest.wb := wbdata
     io.fpgatest.pc := mem_wb_pc
-
-
-    
-    
-    if(test){
-        io.test.mpc := pc_current
-        io.test.pc := if_id_pc
-        io.test.raddr1 := inst(19,15)
-        io.test.raddr2 := inst(24,20) 
-        io.test.rs2 := rs2
-        io.test.op1 := aluop1
-        io.test.op2 := aluop2
-        io.test.aluzero := alu.io.comp
-        io.test.aluresult := alu.io.result
-        io.test.rwdata := inst(11,7)
-        io.test.wb_data := wbdata
-    } else{
-        io.test <> DontCare
-    }
-
-
 }
 
 object Dataflowdriver extends App{
