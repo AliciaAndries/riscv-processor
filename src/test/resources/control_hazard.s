@@ -1,4 +1,3 @@
-nop
 addi x1, x0, 0x6
 addi x2, x0, 0x5
 beq  x1, x2, _equal

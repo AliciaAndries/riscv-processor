@@ -16,7 +16,7 @@ for line in Lines:
     line = "        \"b" +line + "\".U,\n"
     bin_L.append(line)
 
-for x in range(3):
+for x in range(20):
     line = "        \"b00000000000000000000000000010011\".U,\n"
     if x == 29:
         line = "        \"b00000000000000000000000000010011\".U\n"

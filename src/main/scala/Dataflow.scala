@@ -15,6 +15,8 @@ class FpgaTestIO() extends Bundle{
     val id_ex_rd = Output(UInt(5.W))
     val decode_pc = Output(UInt(32.W))
     val decode_inst = Output(UInt(32.W))
+    val aluop1 = Output(UInt(32.W))
+    val aluop2 = Output(UInt(32.W))
 }
 
 class DataflowIO() extends Bundle {
@@ -25,8 +27,12 @@ class DataflowIO() extends Bundle {
 } 
 
 object PC_CONSTS {
-    val pc_init = 0x4.U(32.W)
-    val pc_expt = 0x0.U(32.W)
+    val pc_init = 0x0.U(32.W)
+    val pc_expt = 0x90.U(32.W)
+}
+
+object BRANCH_CONTST {
+    val offset_for_nops = 8.U
 }
 
 class Dataflow(test : Boolean = false) extends Module {
@@ -45,6 +51,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val halt                = WireDefault(false.B)
     // branch/jal wires/forwarding
     val taken               = WireDefault(false.B)
+    val jump                = WireDefault(false.B)
     val tBranchaddr         = WireDefault(0.U(32.W))
     val aluresult           = WireDefault(0.U(32.W))
     val wbdata              = WireDefault(0.U(32.W))
@@ -58,6 +65,7 @@ class Dataflow(test : Boolean = false) extends Module {
     // if/id
     val if_id_pc            = RegInit(0.U(32.W))
     // id/ex
+    val id_ex_is_jump       = RegInit(false.B)
     val id_ex_rs1_addr      = RegInit(0.U(5.W))
     val id_ex_rs2_addr      = RegInit(0.U(5.W))
 
@@ -93,11 +101,10 @@ class Dataflow(test : Boolean = false) extends Module {
 
     ////////////////////////////////////////fetch instruction//////////////////////////////////////// 
     
-    val pc_current = Mux(start, pc,
-                        Mux(halt, pc,
-                        Mux(taken, tBranchaddr, 
-                        Mux(control.io.PCSrc === Control.Jump, aluresult, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
-                        Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))))
+    val pc_current = Mux(halt || start, pc,
+                        Mux(taken, tBranchaddr - BRANCH_CONTST.offset_for_nops, 
+                        //Mux(id_ex_is_jump, tBranchaddr - BRANCH_CONTST.offset_for_nops, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
+                        Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))//)
     
     io.iMemIO.req.bits.addr := pc
     io.iMemIO.req.valid := true.B
@@ -105,7 +112,7 @@ class Dataflow(test : Boolean = false) extends Module {
     io.iMemIO.req.bits.data := DontCare
 
     pc := pc_current
-    if_id_pc := Mux(halt, if_id_pc, pc)
+    if_id_pc := Mux(halt || taken || id_ex_is_jump, if_id_pc, pc)
 
     io.fpgatest.id_ex_rd := pc_current>>2.U
 
@@ -114,7 +121,7 @@ class Dataflow(test : Boolean = false) extends Module {
     ////////////////////////////////////////decode instruction////////////////////////////////////////
 
     //hazard detection
-    inst := Mux(start, nop, 
+    inst := Mux(start || taken || id_ex_is_jump, nop, 
                 Mux(halt, inst, io.iMemIO.resp.bits.data) )   //first clockcycle say next clockcycle it also needs to be nop
 
     io.fpgatest.decode_pc := if_id_pc >> 2.U
@@ -145,23 +152,24 @@ class Dataflow(test : Boolean = false) extends Module {
     val rs2 = regFile.io.rs2            //only R&S-Type
 
     
-
-    id_ex_rs1_addr      := Mux(halt || taken, 0.U, raddr1)
-    id_ex_rs2_addr      := Mux(halt || taken, 0.U, raddr2)
+    id_ex_is_jump       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.PCSrc === Control.Jump)
+    id_ex_rs1_addr      := Mux(halt || taken || id_ex_is_jump, 0.U, raddr1)
+    id_ex_rs2_addr      := Mux(halt || taken || id_ex_is_jump, 0.U, raddr2)
     id_ex_pc            := if_id_pc
-    id_ex_rs1           := Mux(halt || taken, 0.U, rs1)
-    id_ex_rs2           := Mux(halt || taken, 0.U, rs2)
-    id_ex_immgen        := Mux(halt || taken, 0.U, extended)
-    id_ex_rd            := Mux(halt || taken, 0.U, inst(11,7))
-    id_ex_aluCtrl       := Mux(halt || taken, 0.U, control.io.aluCtrl)
-    id_ex_op2Ctrl       := Mux(halt || taken, 0.U, control.io.op2Ctrl)
-    id_ex_op1Ctrl       := Mux(halt || taken, 0.U, control.io.op1Ctrl)
-    id_ex_sttype        := Mux(halt || taken, 0.U, control.io.sttype)
-    id_ex_ldtype        := Mux(halt || taken, 0.U, control.io.ldtype)
-    id_ex_wbsrc         := Mux(halt || taken, 0.U, control.io.wbsrc)
-    id_ex_bt            := Mux(halt || taken, 0.U, control.io.bt)
+    id_ex_rs1           := Mux(halt || taken || id_ex_is_jump, 0.U, rs1)
+    id_ex_rs2           := Mux(halt || taken || id_ex_is_jump, 0.U, rs2)
+    id_ex_immgen        := Mux(halt || taken || id_ex_is_jump, 0.U, extended)
+    id_ex_rd            := Mux(halt || taken || id_ex_is_jump, 0.U, inst(11,7))
+    id_ex_aluCtrl       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.aluCtrl)
+    id_ex_op2Ctrl       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.op2Ctrl)
+    id_ex_op1Ctrl       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.op1Ctrl)
+    id_ex_sttype        := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.sttype)
+    id_ex_ldtype        := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.ldtype)
+    id_ex_wbsrc         := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.wbsrc)
+    id_ex_bt            := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.bt)
 
-    io.fpgatest.halt := halt
+
+    io.fpgatest.halt := taken || halt
     ////////////////////////////////////////execute////////////////////////////////////////
 
     alu.io.operation := id_ex_aluCtrl
@@ -188,12 +196,15 @@ class Dataflow(test : Boolean = false) extends Module {
     val aluop2 = Mux(id_ex_op2Ctrl === Control.op2Imm, id_ex_immgen, reg_input2)
     alu.io.op1 := aluop1
     alu.io.op2 := aluop2
+
+    io.fpgatest.aluop1 := aluop1
+    io.fpgatest.aluop2 := aluop2
     
     aluresult := alu.io.result
     branchLogic.io.comp := alu.io.comp
     branchLogic.io.bt := id_ex_bt
     // if taken === 1 you need to nop the last instruction and set pc
-    taken := branchLogic.io.taken
+    taken := branchLogic.io.taken || id_ex_is_jump
     //Branch should this be a reg?
     tBranchaddr := id_ex_immgen + pc
 
