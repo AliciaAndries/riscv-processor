@@ -96,6 +96,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val mem_wb_rd            = RegInit(0.U(5.W))
     val mem_wb_wbsrc         = RegInit(0.U(2.W))
     val mem_wb_ldtype        = RegInit(0.U(3.W))
+    val mem_wb_doffset       = RegInit(0.U(5.W))
 
 
 
@@ -224,8 +225,8 @@ class Dataflow(test : Boolean = false) extends Module {
     //io.dMemIO.req.bits.data := ex_mem_rs2
 
     //W -> moffset = 0, H -> moffset = 0 or 2, B -> mmoffset =  0-3
-    val moffset = Mux(ex_mem_sttype === Control.ST_SW || ex_mem_sttype === Control.LD_LW, 0.U,
-                    Mux(ex_mem_sttype === Control.ST_SH || ex_mem_sttype === Control.LD_LH || ex_mem_sttype === Control.LD_LHU,  
+    val moffset = Mux(ex_mem_sttype === Control.ST_SW || ex_mem_ldtype === Control.LD_LW, 0.U,
+                    Mux(ex_mem_sttype === Control.ST_SH || ex_mem_ldtype === Control.LD_LH || ex_mem_ldtype === Control.LD_LHU,  
                         ex_mem_aluresult(1,0)&"b10".U, ex_mem_aluresult(1,0)))
     val doffset = moffset << 3
     
@@ -246,11 +247,12 @@ class Dataflow(test : Boolean = false) extends Module {
     mem_wb_rd           := ex_mem_rd
     mem_wb_wbsrc        := ex_mem_wbsrc
     mem_wb_ldtype       := ex_mem_ldtype
+    mem_wb_doffset      := doffset
 
 
     ////////////////////////////////////////write back////////////////////////////////////////
 
-    val memrdata = Mux(mem_wb_resp_valid, io.dMemIO.resp.bits.data, 0.U) >> doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
+    val memrdata = Mux(mem_wb_resp_valid, io.dMemIO.resp.bits.data, 0.U) >> mem_wb_doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
     
     val rdata = MuxLookup(mem_wb_ldtype, memrdata.asSInt,
         Array(
