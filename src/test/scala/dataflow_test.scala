@@ -8,6 +8,7 @@ import Opcode._
 
 class Dataflow_tester extends BasicTester{
     val dut = Module(new Dataflow(true))
+    dut.io.io_out_of_bounds := false.B
 
     def toBigInt(x: Int) = (BigInt(x >>> 1) << 1) | (x & 0x1)
     val nr_insts = 31

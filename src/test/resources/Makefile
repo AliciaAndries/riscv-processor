@@ -1,4 +1,4 @@
-NAME = loop
+NAME = uart_out
 
 s_to_hex:
 	riscv32-unknown-elf-as -o $(NAME).elf -c $(NAME).s
