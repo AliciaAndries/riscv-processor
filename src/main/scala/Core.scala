@@ -9,7 +9,7 @@ import FPGAInstructions._
 class CoreIO extends Bundle {
     val fpgatest = new FpgaTestIO
     val ledio = Output(UInt(1.W))
-    val wb = Output(UInt(32.W))
+    val uartSerialPort = new UARTSerialPort()
 }
 
 class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
@@ -19,7 +19,15 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
     val dataflow = Module(new Dataflow)
     val dMem = Module(new Memory)
     val iMem = Module(imemory)
+
+    val fifoLength  = 128
+    val rxOverclock = 16
+    val uart = Module(new Uart(fifoLength, rxOverclock))
+
     val addressArbiter = Module(new AddressArbiter)
+
+    val read_value = WireDefault(0.U(32.W))
+    val read_valid = WireDefault(false.B)
 
     iMem.io.req.bits.addr := dataflow.io.iMemIO.req.bits.addr
     iMem.io.req.bits.data := dataflow.io.iMemIO.req.bits.data
@@ -30,22 +38,28 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
     dataflow.io.iMemIO.resp.valid := iMem.io.resp.valid
 
 
-    addressArbiter.io.addr := dataflow.io.dMemIO.req.bits.addr
-    addressArbiter.io.req := dataflow.io.dMemIO.req.valid
+    addressArbiter.io.io_req <> dataflow.io.dMemIO.req
 
-    dMem.io.req.bits.addr := dataflow.io.dMemIO.req.bits.addr
-    dMem.io.req.bits.data := dataflow.io.dMemIO.req.bits.data
-    dMem.io.req.bits.mask := dataflow.io.dMemIO.req.bits.mask
-    dMem.io.req.valid := addressArbiter.io.memReqValid
+    ////////////////////////////////////// Memory read/write //////////////////////////////////////
+    dMem.io.req <> addressArbiter.io.mem_req
+    read_value := dMem.io.resp.bits.data
+    read_valid := dMem.io.resp.valid
 
-    dataflow.io.dMemIO.resp.bits.data := dMem.io.resp.bits.data
-    dataflow.io.dMemIO.resp.valid := dMem.io.resp.valid
+    //////////////////////////////////////        UART       //////////////////////////////////////
+    uart.io.dataPort <> addressArbiter.io.uart_port
+    io.uartSerialPort <> uart.io.serialPort
+    when(addressArbiter.io.uart_out.orR){
+        read_value := addressArbiter.io.uart_out
+        read_valid := true.B
+    }
+    //////////////////////////////////////   LED operation   //////////////////////////////////////
+    io.ledio := addressArbiter.io.led_io
 
     io.fpgatest := dataflow.io.fpgatest
-    io.ledio := Mux(addressArbiter.io.ioReqValid && !addressArbiter.io.memReqValid, dataflow.io.dMemIO.req.bits.data(0), 0.U)
-    dataflow.io.io_out_of_bounds := !addressArbiter.io.ioReqValid
+    dataflow.io.dMemIO.resp.bits.data := read_value
+    dataflow.io.dMemIO.resp.valid := read_valid
 
-    io.wb := dataflow.io.fpgatest.wb
+    dataflow.io.io_out_of_bounds := addressArbiter.io.address_not_in_use
 }
 
 object CoreFPGAOutHardCodedInsts extends App{

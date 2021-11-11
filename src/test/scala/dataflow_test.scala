@@ -9,6 +9,7 @@ import FPGAInstructions._
 
 class Dataflow_tester extends BasicTester{
     val dut = Module(new Dataflow(true))
+    dut.io.io_out_of_bounds := false.B
 
     val correct_wb = VecInit(
         1.U(32.W),
