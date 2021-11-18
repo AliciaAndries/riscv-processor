@@ -3,7 +3,7 @@ _start:
     addi x2, x0, 0xE1   # write 225 to x2
     addi x3, x0, 0xA    # write 10 to x3
     addi x16, x0, 0x18
-    addi x20, x0, 0x15  # clkdevide should be 21
+    addi x20, x0, 0x35  # clkdevide should be 53
 
 _arythmatic:
     add  x4, x2, x3     # 225 + 10 = 235
@@ -52,9 +52,9 @@ _exit:
     sub x15, x9, x11    # 3758039040
     sw   x15, 0x404(x0) #uart 0
     sra x15, x14, x3    # 4294967288
-    sw   x15, 0x404(x0) #uart 0
-    ori x16, x9, 0x10   # #uart 0
-    sw   x16, 0x404(x0) #uart 0
+    sw   x15, 0x404(x0) #uart 248
+    ori x16, x9, 0x10   # 3758096400
+    sw   x16, 0x404(x0) #uart 16
     xori x16, x16, 0X10 # 3758096384
     andi x17, x16, 0x10 # 0
     sw   x17, 0x404(x0) #uart 0
