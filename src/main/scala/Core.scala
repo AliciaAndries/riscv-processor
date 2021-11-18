@@ -7,7 +7,7 @@ import Instructions._
 import FPGAInstructions._
 
 class CoreIO extends Bundle {
-    val fpgatest = new FpgaTestIO
+    //val fpgatest = new FpgaTestIO
     val ledio = Output(UInt(1.W))
     val uartSerialPort = new UARTSerialPort()
 }
@@ -55,7 +55,7 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
     //////////////////////////////////////   LED operation   //////////////////////////////////////
     io.ledio := addressArbiter.io.led_io
 
-    io.fpgatest := dataflow.io.fpgatest
+    //io.fpgatest := dataflow.io.fpgatest
     dataflow.io.dMemIO.resp.bits.data := read_value
     dataflow.io.dMemIO.resp.valid := read_valid
 
