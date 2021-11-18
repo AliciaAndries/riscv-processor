@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import random
 
 file_name = str(sys.argv[1])
 file2 = open(file_name, 'r')
@@ -15,12 +16,12 @@ for line in Lines:
     count = count + 1
     line = "        \"b" +line + "\".U,\n"
     bin_L.append(line)
+
+apple = bin_L
 for x in range(200):
-    if x < 200:
-        line = "        \"b00000000000000000000000000000000\".U,\n"
-    else:
-        line = "        \"b00000000000000000000000000000000\".U\n"
-    bin_L.append(line)
+    i = random.randint(0, len(bin_L)-1)
+    line = bin_L[i]
+    apple.append(line)
 
 for line in Lines:
     line = line.rstrip()
@@ -45,6 +46,6 @@ lines3_start =  ["package core\n\n",
 
 lines3_end =    ["    )\n", "}\n"]
 file3 = open(file_name_bin, 'w')
-file3.writelines((lines3_start+bin_L+ lines3_end))
+file3.writelines((lines3_start+apple+ lines3_end))
 file3.close()
 file2.close()
