@@ -85,7 +85,7 @@ class Dataflow_tester extends BasicTester{
     val dMem = Module(new Memory)
     val stages = 5.U
 
-    val (cntr, done) = Counter(true.B, iMem.size+10)
+    val (cntr, done) = Counter(true.B, 13/* iMem.size+10 */)
     
     val return_data = iMem(dut.io.iMemIO.req.bits.addr>>2.U)
     dut.io.iMemIO.resp.bits.data := return_data
@@ -119,7 +119,8 @@ class Dataflow_tester extends BasicTester{
                 44.U -> (dut.io.fpgatest.pc === pc_prev),
                 52.U -> (dut.io.fpgatest.pc === 4264.U + 16.U)
                 ))
-    printf("cntr = %d, correct_wb = %d, wb = %d, correct_pc = %d, pc = %d\n", cntr, wb_check, wb, correct_pc, dut.io.fpgatest.pc >> 2.U)
+    printf("cntr = %d, correct_wb = %d, wb = %d, correct_pc = %d, pc = %d, execute_pc = %d, op1 = %d, op2 = %d\n", 
+      cntr, wb_check, wb, correct_pc, dut.io.fpgatest.pc >> 2.U, dut.io.fpgatest.decode_pc -1.U, dut.io.fpgatest.aluop1, dut.io.fpgatest.aluop2)
     //assert(wb === wb_check)
     when(done) { stop(); stop() } 
 }

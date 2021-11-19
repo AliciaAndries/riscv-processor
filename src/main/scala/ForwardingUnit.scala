@@ -26,10 +26,10 @@ class ForwardingUnit extends Module {
     io.reg1 :=  Mux(io.rs1_cur === 0.U, ForwardingUnit.CUR,
                 Mux(io.rs1_cur === io.rd_ex_mem, ForwardingUnit.EX_MEM_ALU,
                 Mux(io.rs1_cur === io.rd_mem_wb, ForwardingUnit.MEM_WB,
-                Mux(io.rs1_cur === io.rd_wb_out, ForwardingUnit.WB_OUT, ForwardingUnit.CUR))))
+                Mux(io.rs1_cur === io.rd_wb_out, ForwardingUnit.CUR, ForwardingUnit.CUR))))
 
     io.reg2 := Mux(io.rs2_cur === 0.U || io.cur_is_load, ForwardingUnit.CUR,
                 Mux(io.rs2_cur === io.rd_ex_mem, ForwardingUnit.EX_MEM_ALU,
                 Mux(io.rs2_cur === io.rd_mem_wb, ForwardingUnit.MEM_WB,
-                Mux(io.rs2_cur === io.rd_wb_out, ForwardingUnit.WB_OUT, ForwardingUnit.CUR))))
+                Mux(io.rs2_cur === io.rd_wb_out, ForwardingUnit.CUR, ForwardingUnit.CUR))))
 }

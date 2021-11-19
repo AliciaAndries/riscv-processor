@@ -22,12 +22,41 @@ class RegFileIO extends Bundle {
 class RegFile extends Module {
     val io = IO(new RegFileIO)
 
-    val reg = Mem(32, UInt(32.W))  //32 registers -> only 5 bit addr so cant have any bigger
+    def risingedge(x: Bool) = x && !RegNext(x)
+    def fallingedge(x: Bool) = !x && RegNext(x)
+
+    val revClk = Wire(new Clock)
+    revClk := (~clock.asUInt()(0)).asBool.asClock()
+
+    val out1 = RegInit(0.U)
+    val out2 = RegInit(0.U)
+
+    val wire1 = WireDefault(0.U)
+
+    //val reg = Mem(32, UInt(32.W))  //32 registers -> only 5 bit addr so cant have any bigger
+    val reg = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
 
     when(io.wen && io.waddr.orR){
-        reg(io.waddr) := io.wdata
+        withClock(clock){
+            
+            //printf("written: %d\n", io.wdata)
+            reg(io.waddr) := io.wdata
+        }
+    }
+    withClock(revClk){
+        out1 := Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
+        out2 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
     }
 
-    io.rs1 := Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
-    io.rs2 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
+    when(fallingedge(clock.asBool)){
+        printf("falling edge exists")
+        wire1 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
+    }
+    
+
+    
+    io.rs1 := out1//Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
+    io.rs2 := wire1//Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
+    //printf("read: %d, %d\n", out1, out2)
+
 }
