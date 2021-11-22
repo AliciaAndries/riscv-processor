@@ -35,28 +35,28 @@ class RegFile extends Module {
 
     //val reg = Mem(32, UInt(32.W))  //32 registers -> only 5 bit addr so cant have any bigger
     val reg = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
-
-    when(io.wen && io.waddr.orR){
-        withClock(clock){
-            
-            //printf("written: %d\n", io.wdata)
-            reg(io.waddr) := io.wdata
-        }
-    }
-    withClock(revClk){
+    
+    withClock(clock){
+        printf("rising\n")
         out1 := Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
         out2 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
     }
 
-    when(fallingedge(clock.asBool)){
-        printf("falling edge exists")
-        wire1 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
+    when(io.wen && io.waddr.orR){
+        withClock(clock){
+            printf("falling\n")
+            //printf("written: %d\n", io.wdata)
+            reg(io.waddr) := io.wdata
+        }
     }
-    
 
-    
-    io.rs1 := out1//Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
-    io.rs2 := wire1//Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
+    io.rs1 := Mux(io.raddr1.orR, reg(io.raddr1), 0.U)
+    io.rs2 := Mux(io.raddr2.orR, reg(io.raddr2), 0.U)
+
+    /* when(io.waddr === io.raddr1){
+        io.rs1 := io.wdata
+    } */
+
     //printf("read: %d, %d\n", out1, out2)
 
 }

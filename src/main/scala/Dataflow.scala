@@ -48,6 +48,8 @@ class Dataflow(test : Boolean = false) extends Module {
     val hazardDetection = Module(new HazardDetection)
 
     val nop = "b00000000000000000000000000110011".U(32.W)
+    
+    val memrdata = WireDefault(0.U(32.W))
     //halt
     val halt                = WireDefault(false.B)
     // branch/jal wires/forwarding
@@ -122,6 +124,8 @@ class Dataflow(test : Boolean = false) extends Module {
 
     ////////////////////////////////////////decode instruction////////////////////////////////////////
 
+    ////////////////////////////////////////// clock //////////////////////////////////////////
+
     //hazard detection
     inst := Mux(start || taken || id_ex_is_jump, nop, 
                 Mux(halt, inst, io.iMemIO.resp.bits.data) )   //first clockcycle say next clockcycle it also needs to be nop
@@ -174,6 +178,8 @@ class Dataflow(test : Boolean = false) extends Module {
     io.fpgatest.halt := taken || halt
     ////////////////////////////////////////execute////////////////////////////////////////
 
+    ////////////////////////////////////////// clock //////////////////////////////////////////
+
     alu.io.operation := id_ex_aluCtrl
 
     forwardingUnit.io.rs1_cur := id_ex_rs1_addr
@@ -184,12 +190,10 @@ class Dataflow(test : Boolean = false) extends Module {
     forwardingUnit.io.rd_wb_out := rd_prev_inst
     
     // if its a load its PREV_PREV cause prev is 
-    val reg_input1 = Mux(forwardingUnit.io.reg1 === WB_OUT, wb_prev_inst, 
-                            Mux(forwardingUnit.io.reg1 === MEM_WB, wbdata, 
-                            Mux(forwardingUnit.io.reg1 === EX_MEM_ALU, ex_mem_aluresult, rs1)))
-    val reg_input2 = Mux(forwardingUnit.io.reg2 === WB_OUT, wb_prev_inst,
-                            Mux(forwardingUnit.io.reg2 === MEM_WB, wbdata,
-                            Mux(forwardingUnit.io.reg2 === EX_MEM_ALU, ex_mem_aluresult, rs2)))
+    val reg_input1 = Mux(forwardingUnit.io.reg1 === MEM_WB, wb_prev_inst, 
+                            Mux(forwardingUnit.io.reg1 === EX_MEM_ALU, memrdata, id_ex_rs1))
+    val reg_input2 = Mux(forwardingUnit.io.reg2 === MEM_WB, wb_prev_inst,
+                            Mux(forwardingUnit.io.reg2 === EX_MEM_ALU, memrdata, id_ex_rs2))
     io.fpgatest.reg_input1 := forwardingUnit.io.reg1
     io.fpgatest.reg_input2 := forwardingUnit.io.reg2
     io.fpgatest.pc_ex := id_ex_pc
@@ -210,6 +214,33 @@ class Dataflow(test : Boolean = false) extends Module {
     //Branch should this be a reg?
     tBranchaddr := id_ex_immgen + pc
 
+    
+
+    
+    ////////////////////////////////////////Memory Access////////////////////////////////////////
+
+    //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory.
+    io.dMemIO.req.bits.addr := aluresult
+
+    // TODO: pass mem write directly to read but when needs seperate waddr and raddr if theyre gonna happen at same time
+    
+    //W -> moffset = 0, H -> moffset = 0 or 2, B -> mmoffset =  0-3
+    val moffset = Mux(id_ex_sttype === Control.ST_SW || id_ex_ldtype === Control.LD_LW, 0.U,
+                    Mux(id_ex_sttype === Control.ST_SH || id_ex_ldtype === Control.LD_LH || id_ex_ldtype === Control.LD_LHU,  
+                        aluresult(1,0)&"b10".U, aluresult(1,0)))
+    val doffset = moffset << 3
+    
+    io.dMemIO.req.bits.data := ex_mem_rs2 << doffset
+    
+    io.dMemIO.req.bits.mask := MuxLookup(id_ex_sttype, "b0000".U, 
+        Array(
+            Control.ST_SW -> ("b1111".U),
+            Control.ST_SH -> ("b11".U << moffset),      //what if someone puts in addr(1,0) = "01" or "11", no longer aligned so maybe throw a fit?
+            Control.ST_SB -> ("b1".U << moffset)
+        ))
+    
+    io.dMemIO.req.valid := id_ex_sttype.orR || id_ex_ldtype.orR 
+
     ex_mem_pc           := id_ex_pc
     ex_mem_aluresult    := aluresult
     ex_mem_rd           := id_ex_rd
@@ -217,30 +248,6 @@ class Dataflow(test : Boolean = false) extends Module {
     ex_mem_sttype       := id_ex_sttype
     ex_mem_ldtype       := id_ex_ldtype
     ex_mem_wbsrc        := id_ex_wbsrc
-
-    
-    ////////////////////////////////////////Memory Access////////////////////////////////////////
-
-    //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory.
-    io.dMemIO.req.bits.addr := ex_mem_aluresult
-    //io.dMemIO.req.bits.data := ex_mem_rs2
-
-    //W -> moffset = 0, H -> moffset = 0 or 2, B -> mmoffset =  0-3
-    val moffset = Mux(ex_mem_sttype === Control.ST_SW || ex_mem_ldtype === Control.LD_LW, 0.U,
-                    Mux(ex_mem_sttype === Control.ST_SH || ex_mem_ldtype === Control.LD_LH || ex_mem_ldtype === Control.LD_LHU,  
-                        ex_mem_aluresult(1,0)&"b10".U, ex_mem_aluresult(1,0)))
-    val doffset = moffset << 3
-    
-    io.dMemIO.req.bits.data := ex_mem_rs2 << doffset
-    
-    io.dMemIO.req.bits.mask := MuxLookup(ex_mem_sttype, "b0000".U, 
-        Array(
-            Control.ST_SW -> ("b1111".U),
-            Control.ST_SH -> ("b11".U << moffset),      //what if someone puts in addr(1,0) = "01" or "11", no longer aligned so maybe throw a fit?
-            Control.ST_SB -> ("b1".U << moffset)
-        ))
-    
-    io.dMemIO.req.valid := ex_mem_sttype.orR || ex_mem_ldtype.orR 
     
     mem_wb_resp_valid   := io.dMemIO.resp.valid
     mem_wb_pc           := ex_mem_pc
@@ -253,9 +260,12 @@ class Dataflow(test : Boolean = false) extends Module {
 
     ////////////////////////////////////////write back////////////////////////////////////////
 
-    val memrdata = Mux(mem_wb_resp_valid, io.dMemIO.resp.bits.data, 0.U) >> mem_wb_doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
+    ////////////////////////////////////////// clock //////////////////////////////////////////
+    // still actually mem phase
     
-    val rdata = MuxLookup(mem_wb_ldtype, memrdata.asSInt,
+    memrdata := Mux(mem_wb_resp_valid, io.dMemIO.resp.bits.data, 0.U) >> mem_wb_doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
+    
+    val rdata = MuxLookup(ex_mem_ldtype, memrdata.asSInt,
         Array(
             Control.LD_LH  -> (memrdata(15,0).asSInt),   //SInt sign extends the value
             Control.LD_LHU -> ((memrdata(15,0).zext).asSInt),    //zext is UInt feature
@@ -264,17 +274,19 @@ class Dataflow(test : Boolean = false) extends Module {
         ))
 
 
-    regFile.io.waddr := mem_wb_rd
-    regFile.io.wen := mem_wb_wbsrc.orR
-    wbdata := Mux(mem_wb_wbsrc === Control.WB_MEM, rdata.asUInt, 
-                            Mux(mem_wb_wbsrc === Control.WB_PC, mem_wb_pc + 4.U, mem_wb_aluresult))
+    regFile.io.waddr := ex_mem_rd
+    regFile.io.wen := ex_mem_wbsrc.orR
+    wbdata := Mux(ex_mem_wbsrc === Control.WB_MEM, rdata.asUInt, 
+                            Mux(ex_mem_wbsrc === Control.WB_PC, ex_mem_pc + 4.U, ex_mem_aluresult))
     regFile.io.wdata := wbdata
 
     wb_prev_inst := wbdata
-    rd_prev_inst := mem_wb_rd
+    rd_prev_inst := ex_mem_rd
 
-    io.fpgatest.wb := wbdata
-    io.fpgatest.pc := mem_wb_pc
+    io.fpgatest.wb := wb_prev_inst
+    io.fpgatest.pc := ex_mem_pc
+    ////////////////////////////////////////// clock //////////////////////////////////////////
+    //last clock cycle
 }
 
 object Dataflowdriver extends App{
