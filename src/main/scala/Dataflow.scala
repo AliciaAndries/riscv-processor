@@ -108,7 +108,7 @@ class Dataflow(test : Boolean = false) extends Module {
                         //Mux(id_ex_is_jump, tBranchaddr - BRANCH_CONTST.offset_for_nops, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
                         Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))//)
     
-    io.iMemIO.req.bits.addr := pc
+    io.iMemIO.req.bits.addr := pc_current
     io.iMemIO.req.valid := true.B
     io.iMemIO.req.bits.mask := 0.U
     io.iMemIO.req.bits.data := DontCare
@@ -116,15 +116,14 @@ class Dataflow(test : Boolean = false) extends Module {
     pc := pc_current
     if_id_pc := Mux(halt || taken || id_ex_is_jump, if_id_pc, pc)
 
+    //printf("mpc = %d, pc = %d, if_id_pc = %d, inst = %x\n\n", pc_current, pc, if_id_pc, inst)
     io.fpgatest.id_ex_rd := pc_current>>2.U
 
     start := false.B
-    printf("multiplex pc = %d, pc = %d, if_id_pc = %d\n", pc_current, pc, if_id_pc)
-    printf("imem = %d, inst = %d\n\n", io.iMemIO.resp.bits.data, inst)
     ////////////////////////////////////////decode instruction////////////////////////////////////////
 
     //hazard detection
-    inst := Mux(start || taken || id_ex_is_jump, nop, 
+    inst := Mux(taken || id_ex_is_jump || start, nop, 
                 Mux(halt, inst, io.iMemIO.resp.bits.data))   //first clockcycle say next clockcycle it also needs to be nop
 
     io.fpgatest.decode_pc := if_id_pc >> 2.U

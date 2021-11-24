@@ -67,5 +67,5 @@ object CoreFPGAOutHardCodedInsts extends App{
 }
 
 object CoreFPGAOutInitMem extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemory("Core_tester"), true), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), true), args)
 }

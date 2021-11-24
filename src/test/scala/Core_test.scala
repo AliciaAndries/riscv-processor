@@ -28,7 +28,7 @@ class CoreTests extends FlatSpec with Matchers {
 
     iotesters.Driver.execute(
       args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-      dut = () => new Core(new IMemory("Core_tester"), true)
+      dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), true)
     ) { c =>
       new Core_tester(c)
     } should be (true)

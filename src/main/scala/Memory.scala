@@ -70,10 +70,10 @@ class IMemory(dir: String) extends Module with IMem {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(45, UInt(32.W))
+    val mem = SyncReadMem(46, UInt(32.W))
     
     
-    loadMemoryFromFileInline(mem, "test_run_dir/"+dir+"/all.hex")
+    loadMemoryFromFileInline(mem, dir)
     
 
     //only write when wen is true
@@ -81,9 +81,7 @@ class IMemory(dir: String) extends Module with IMem {
         mem.write(valid_addr, data)
     }.elsewhen(ren) {
         val data = mem.read(valid_addr,ren)
-        io.resp.bits.data := Cat(data(3), data(2), data(1), data(0))    //reverse wasnt working?
-        printf("data read = %x\n", data)
-        //io.resp.bits.data := data
+        io.resp.bits.data := data
         io.resp.valid := true.B
     }
 }

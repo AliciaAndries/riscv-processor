@@ -56,7 +56,7 @@ class Dataflow_tester extends BasicTester{
         0.U(32.W),
         71.U(32.W),
         BigInt(14745600L).U(32.W),
-        225.U(32.W),
+        255.U(32.W),
         57344.U(32.W),
         BigInt(4294959104L).U(32.W),    //already correct cause reads the same as prev ld just interprets it differently
         0.U(32.W),
@@ -81,15 +81,18 @@ class Dataflow_tester extends BasicTester{
         0.U(32.W)
         )
     
-    val iMem = all
+    val iMem = Module(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all.hex"))
     val dMem = Module(new Memory)
     val stages = 5.U
 
     val (cntr, done) = Counter(true.B, correct_wb.size)
     
-    val return_data = iMem(dut.io.iMemIO.req.bits.addr>>2.U)
-    dut.io.iMemIO.resp.bits.data := return_data
-    dut.io.iMemIO.resp.valid := true.B
+    iMem.io.req.bits.addr := dut.io.iMemIO.req.bits.addr
+    iMem.io.req.bits.mask := dut.io.iMemIO.req.bits.mask
+    iMem.io.req.bits.data := dut.io.iMemIO.req.bits.data
+    iMem.io.req.valid := dut.io.iMemIO.req.valid
+    dut.io.iMemIO.resp.bits.data := iMem.io.resp.bits.data
+    dut.io.iMemIO.resp.valid := iMem.io.resp.valid
 
     dMem.io.req.bits.addr := dut.io.dMemIO.req.bits.addr
     dMem.io.req.bits.data := dut.io.dMemIO.req.bits.data
@@ -120,7 +123,7 @@ class Dataflow_tester extends BasicTester{
                 52.U -> (dut.io.fpgatest.pc === 4264.U + 16.U)
                 ))
     printf("cntr = %d, correct_wb = %d, wb = %d, correct_pc = %d, pc = %d\n", cntr, wb_check, wb, correct_pc, dut.io.fpgatest.pc >> 2.U)
-    //assert(wb === wb_check)
+    assert(wb === wb_check)
     when(done) { stop(); stop() } 
 }
 
