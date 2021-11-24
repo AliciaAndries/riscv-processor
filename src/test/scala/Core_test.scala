@@ -1,4 +1,4 @@
-package core
+ package core
 
 import java.nio.file.{Files, Paths}
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -12,8 +12,8 @@ import chisel3.experimental.BaseModule
 
 class Core_tester(c: Core[IMemory]) extends PeekPokeTester(c) {    
   for(cntr <- 0 until 53) {
-    poke(c.io.uartSerialPort.rx, 0.U)
-    printf("ioled = %d, uart = %d\n", dut.io.ledio, dut.io.uartSerialPort.tx)
+    poke(c.io.uartSerialPort.rx, 0)
+    println(f"ioled = ${peek(c.io.ledio)}, uart = ${peek(c.io.uartSerialPort.tx)}%d\n")
     step(1)
   }
 }

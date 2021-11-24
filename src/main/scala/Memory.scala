@@ -7,7 +7,7 @@ import FPGAInstructions._
 
 object MemorySize {
     val BMemBytes = 256
-    val IMemBytes = 32
+    val IMemBytes = 60
 }
 
 class MemoryReq extends Bundle {
@@ -73,7 +73,7 @@ class IMemory(dir: String) extends Module with IMem {
     val mem = SyncReadMem(MemorySize.IMemBytes, UInt(32.W))
     
     
-    loadMemoryFromFileInline(mem, "test_run_dir/"+dir+"/all.hex")
+    loadMemoryFromFileInline(mem, "/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex")
     
 
     //only write when wen is true
