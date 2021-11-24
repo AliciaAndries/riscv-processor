@@ -12,6 +12,7 @@ class Dataflow_tester extends BasicTester{
     dut.io.io_out_of_bounds := false.B
 
     val correct_wb = VecInit(
+        0.U(32.W),  //firs round is nop
         1.U(32.W),
         225.U(32.W),
         10.U(32.W),
@@ -24,42 +25,28 @@ class Dataflow_tester extends BasicTester{
         BigInt(3758096384L).U(32.W),
         241.U(32.W),                   
         BigInt(4043309056L).U(32.W),
-        52.U(32.W),                     //pc + 4
-        0.U(32.W),                      //two nops 
-        0.U(32.W),
+        56.U(32.W),                     //pc + 4
         BigInt(4043309056L).U(32.W),
-        0.U(32.W),                    
-        0.U(32.W),
         0.U(32.W),
         120.U(32.W),
         120.U(32.W),
-        0.U(32.W),
-        0.U(32.W),
         1.U(32.W),
-        0.U(32.W),
-        0.U(32.W),
         225.U(32.W),
         225.U(32.W),
-        76.U(32.W),
-        0.U(32.W),
-        0.U(32.W),
+        80.U(32.W),
         225.U(32.W),
-        0.U(32.W),
-        0.U(32.W),
         225.U(32.W),
         226.U(32.W),
         1.U(32.W),
-        0.U(32.W),
-        0.U(32.W),
         225.U(32.W),
-        0.U(32.W),
-        0.U(32.W),
         71.U(32.W),
+        0.U(32.W),
         BigInt(14745600L).U(32.W),
         225.U(32.W),
+        0.U(32.W),  //load so doesnt matter
         57344.U(32.W),
+        0.U(32.W),  //load so doesnt matter
         BigInt(4294959104L).U(32.W),    //already correct cause reads the same as prev ld just interprets it differently
-        0.U(32.W),
         57344.U(32.W),
         BigInt(3758039040L).U(32.W),
         BigInt(4294967288L).U(32.W),
@@ -67,21 +54,22 @@ class Dataflow_tester extends BasicTester{
         BigInt(3758096384L).U(32.W),
         0.U(32.U),
         BigInt(4294963200L).U(32.W),
+        0.U(32.W),  //load so doesnt matter
         224.U(32.W),
         271.U(32.W),
+        0.U(32.W),  //load so doesnt matter
         BigInt(4294967266L).U(32.W),
-        0.U,
         0.U,
         1.U,
         1.U,
         0.U,
         102400.U(32.W),
-        4264.U(32.W),
-        176.U(32.W),
+        4268.U(32.W),
+        180.U(32.W),
         0.U(32.W)
         )
     
-    val iMem = Module(new IMemory(""))
+    val iMem = Module(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all.hex"))
     val dMem = Module(new Memory)
     val stages = 5.U
 
@@ -103,28 +91,28 @@ class Dataflow_tester extends BasicTester{
     dut.io.dMemIO.resp.bits.data := dMem.io.resp.bits.data
     dut.io.dMemIO.resp.valid := dMem.io.resp.valid
 
-    val pc_prev = RegInit(0.U)
+
+    val pc_prev = RegInit(0.U(32.W))
     pc_prev := dut.io.fpgatest.pc
     val wb = dut.io.fpgatest.wb
     val wb_check = correct_wb(cntr)
-    val correct_pc = MuxLookup(cntr, dut.io.fpgatest.pc === pc_prev + 4.U, Seq(
-                12.U -> (dut.io.fpgatest.pc === pc_prev - 8.U),
-                13.U -> (dut.io.fpgatest.pc === pc_prev + 12.U),
-                16.U -> (dut.io.fpgatest.pc === pc_prev - 8.U),
-                17.U -> (dut.io.fpgatest.pc === pc_prev + 12.U),
-                20.U -> (dut.io.fpgatest.pc === pc_prev - 8.U),
-                21.U -> (dut.io.fpgatest.pc === pc_prev + 12.U),
-                24.U -> (dut.io.fpgatest.pc === pc_prev - 8.U),
-                25.U -> (dut.io.fpgatest.pc === pc_prev + 12.U),
-                27.U -> (dut.io.fpgatest.pc === pc_prev),
-                30.U -> (dut.io.fpgatest.pc === pc_prev),
-                32.U -> (dut.io.fpgatest.pc === pc_prev),
-                41.U -> (dut.io.fpgatest.pc === pc_prev),
-                44.U -> (dut.io.fpgatest.pc === pc_prev),
-                52.U -> (dut.io.fpgatest.pc === 4264.U + 16.U)
-                ))
-    printf("cntr = %d, correct_wb = %d, wb = %d, correct_pc = %d, pc = %d\n", cntr, wb_check, wb, correct_pc, dut.io.fpgatest.pc >> 2.U)
-    //assert(wb === wb_check)
+    val ld = RegInit(true.B)
+
+    when(dut.io.fpgatest.pcsrc === Control.Pl0){
+      ld := ~ld
+    }
+
+    val prev_is_jump = RegInit(true.B)
+    prev_is_jump := dut.io.fpgatest.pcsrc === Control.Jump || dut.io.fpgatest.pcsrc === Control.Br
+
+    val correct_pc = Mux(dut.io.fpgatest.pcsrc === Control.Pl0 && ~ld, dut.io.fpgatest.pc === pc_prev, 
+                      Mux(prev_is_jump, true.B,  dut.io.fpgatest.pc === pc_prev + 4.U))
+
+    printf("cntr = %d, correct_wb = %d, wb = %d, correct_pc = %d, pc = %d, inst = %x\n", cntr, wb_check, wb, correct_pc, dut.io.fpgatest.pc >> 2.U, iMem.io.resp.bits.data)
+    when(dut.io.fpgatest.pcsrc.orR =/= Control.Pl0 && ~ld){
+      assert(wb === wb_check)
+    }
+    assert(correct_pc)
     when(done) { stop(); stop() } 
 }
 

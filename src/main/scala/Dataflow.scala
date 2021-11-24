@@ -3,23 +3,12 @@ package core
 import chisel3._
 import chisel3.util._
 
-class TestIO() extends Bundle {
-    val wb_data = Output(UInt(32.W))
-    val aluzero = Output(Bool())
-    val aluresult = Output(UInt(32.W))
-    val op1 = Output(UInt(32.W))
-    val op2 = Output(UInt(32.W))
-    val rs2 = Output(UInt(32.W))
-    val raddr1 = Output(UInt(5.W))
-    val raddr2 = Output(UInt(5.W))
-    val rwdata = Output(UInt(5.W))
-}
 
 class FpgaTestIO() extends Bundle{
-    //val led = Output(Bool())
     val pc = Output(UInt(32.W))
     val wb = Output(UInt(32.W))
     val zero = Output(Bool())
+    val pcsrc = Output(UInt(3.W))
 }
 
 class DataflowIO() extends Bundle {
@@ -27,7 +16,6 @@ class DataflowIO() extends Bundle {
     val dMemIO = Flipped(new MemoryIO)
     val iMemIO = Flipped(new MemoryIO)
     val io_out_of_bounds = Input(Bool()) 
-    val test = new TestIO
     val fpgatest = new FpgaTestIO
 } 
 
@@ -46,20 +34,26 @@ class Dataflow(test : Boolean = false) extends Module {
     val alu = Module(new ALU)
     val branchLogic = Module(new BranchLogic)
 
-    val pc = RegInit(PC_CONSTS.pc_init) //32 bit so< 4 byte instructions TODO: should it be init to 0?
+    val nop = "b00000000000000000000000000010011".U
+
+    val mpc = WireDefault(PC_CONSTS.pc_init)
+    val pc = RegInit(PC_CONSTS.pc_init - 4.U) //32 bit so< 4 byte instructions TODO: should it be init to 0?
+    val start = RegInit(true.B)
     io.fpgatest.pc := pc
 
     //make initialisation phase? 
 
     //fetch instruction
-    io.iMemIO.req.bits.addr := pc
+    io.iMemIO.req.bits.addr := mpc
     io.iMemIO.req.valid := true.B
     io.iMemIO.req.bits.mask := 0.U
     io.iMemIO.req.bits.data := DontCare
-    val inst = io.iMemIO.resp.bits.data
+    val inst = Mux(start, nop, io.iMemIO.resp.bits.data)
 
     //decode instruction
     control.io.inst := inst
+    
+    start := false.B
     
     //immgen extend 12 bits
 
@@ -96,17 +90,17 @@ class Dataflow(test : Boolean = false) extends Module {
     //pc multiplexer
     val ld_another_clk = RegInit(true.B)
     
-    val mpc = Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
+    mpc := Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
                 Mux(control.io.PCSrc === Control.Jump, aluresult, 
                 Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt,
-                Mux(( control.io.PCSrc === Control.Pl0) && ld_another_clk, pc, pc + 4.U))))
-
+                Mux((control.io.PCSrc === Control.Pl0) && ld_another_clk, pc, pc + 4.U))))
+    
     when(control.io.ldtype.orR){
         ld_another_clk := !ld_another_clk
     }.otherwise{
         ld_another_clk := true.B
     }
-
+    io.fpgatest.pcsrc := control.io.PCSrc
     //Memory
     //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory. --> is this correct?
     io.dMemIO.req.bits.addr := aluresult
@@ -146,21 +140,6 @@ class Dataflow(test : Boolean = false) extends Module {
 
     //update pc
     pc := mpc
-    
-    if(test){
-        io.test.raddr1 := inst(19,15)
-        io.test.raddr2 := inst(24,20) 
-        io.test.rs2 := rs2
-        io.test.op1 := aluop1
-        io.test.op2 := aluop2
-        io.test.aluzero := alu.io.comp
-        io.test.aluresult := alu.io.result
-        io.test.rwdata := inst(11,7)
-        io.test.wb_data := Mux(control.io.ldtype.orR, rdata.asUInt, aluresult)
-    } else{
-        io.test <> DontCare
-    }
-
 
 }
 

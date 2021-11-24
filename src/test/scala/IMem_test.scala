@@ -16,8 +16,9 @@ class LoadMemoryFromFileTester(c: IMemory) extends PeekPokeTester(c) {
     poke(c.io.req.bits.addr, addr)
     poke(c.io.req.bits.mask, 0.U)
     poke(c.io.req.valid, true.B)
-    step(1)
+    
     println(f"peek from $addr ${peek(c.io.resp.bits.data)}%x")
+    step(1)
     //expect(c.io.value, addr)
   }
 }
@@ -33,7 +34,7 @@ class LoadMemoryFromFileSpec extends FlatSpec with Matchers {
 
     iotesters.Driver.execute(
       args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "load_mem_test"),
-      dut = () => new IMemory("load_mem_test")
+      dut = () => new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all.hex")
     ) { c =>
       new LoadMemoryFromFileTester(c)
     } should be (true)
