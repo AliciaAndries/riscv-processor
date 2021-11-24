@@ -12,7 +12,7 @@ class CoreIO extends Bundle {
     val uartSerialPort = new UARTSerialPort()
 }
 
-class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
+class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Module {
 
     val io = IO(new CoreIO)
 
@@ -63,9 +63,9 @@ class Core[T <: BaseModule with IMem](imemory: => T) extends Module {
 }
 
 object CoreFPGAOutHardCodedInsts extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemoryVec), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemoryVec, false), args)
 }
 
 object CoreFPGAOutInitMem extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemory("test.mem")), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemory("Core_tester"), true), args)
 }

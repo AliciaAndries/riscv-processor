@@ -58,31 +58,32 @@ trait IMem{
     val io = new MemoryIO
 }
 
-class IMemory(memoryFile: String = "") extends Module with IMem {
+class IMemory(dir: String) extends Module with IMem {
     override val io = IO(new MemoryIO)
 
     val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
     val valid_addr = aligned_addr(7,0)
 
-    //val data = Cat(io.req.bits.data(7,0), io.req.bits.data(15,8), io.req.bits.data(23,16), io.req.bits.data(31,24))
+    val data = Cat(io.req.bits.data(7,0), io.req.bits.data(15,8), io.req.bits.data(23,16), io.req.bits.data(31,24))
     val wen = io.req.bits.mask.orR && io.req.valid
     val ren = io.req.valid && !wen
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(MemorySize.IMemBytes, UInt(32.W))
+    val mem = SyncReadMem(45, UInt(32.W))
     
     
-    loadMemoryFromFileInline(mem, memoryFile)
+    loadMemoryFromFileInline(mem, "test_run_dir/"+dir+"/all.hex")
     
 
     //only write when wen is true
     when(wen){
-        mem.write(valid_addr, io.req.bits.data)
+        mem.write(valid_addr, data)
     }.elsewhen(ren) {
         val data = mem.read(valid_addr,ren)
-        //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
-        io.resp.bits.data := data
+        io.resp.bits.data := Cat(data(3), data(2), data(1), data(0))    //reverse wasnt working?
+        printf("data read = %x\n", data)
+        //io.resp.bits.data := data
         io.resp.valid := true.B
     }
 }
@@ -113,7 +114,7 @@ class IMemoryVec extends Module with IMem {
 }
 
 object IMemorydriver extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new IMemory("test.mem"), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new IMemory("load_mem_test"), args)
 }
 
 object DMemorydriver extends App{
