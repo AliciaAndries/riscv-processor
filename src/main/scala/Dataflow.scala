@@ -119,12 +119,13 @@ class Dataflow(test : Boolean = false) extends Module {
     io.fpgatest.id_ex_rd := pc_current>>2.U
 
     start := false.B
-
+    printf("multiplex pc = %d, pc = %d, if_id_pc = %d\n", pc_current, pc, if_id_pc)
+    printf("imem = %d, inst = %d\n\n", io.iMemIO.resp.bits.data, inst)
     ////////////////////////////////////////decode instruction////////////////////////////////////////
 
     //hazard detection
     inst := Mux(start || taken || id_ex_is_jump, nop, 
-                Mux(halt, inst, io.iMemIO.resp.bits.data) )   //first clockcycle say next clockcycle it also needs to be nop
+                Mux(halt, inst, io.iMemIO.resp.bits.data))   //first clockcycle say next clockcycle it also needs to be nop
 
     io.fpgatest.decode_pc := if_id_pc >> 2.U
     io.fpgatest.decode_inst := inst

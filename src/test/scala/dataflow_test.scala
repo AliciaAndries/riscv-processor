@@ -81,11 +81,11 @@ class Dataflow_tester extends BasicTester{
         0.U(32.W)
         )
     
-    val iMem = RegInit(all)
+    val iMem = all
     val dMem = Module(new Memory)
     val stages = 5.U
 
-    val (cntr, done) = Counter(true.B, iMem.size+10)
+    val (cntr, done) = Counter(true.B, correct_wb.size)
     
     val return_data = iMem(dut.io.iMemIO.req.bits.addr>>2.U)
     dut.io.iMemIO.resp.bits.data := return_data
