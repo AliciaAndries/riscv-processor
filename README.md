@@ -45,6 +45,9 @@ sbt "testOnly core.DataflowTests"
 (sometimes there is an assert fail that two reg_idx's are the same, this is necause they are randomly generated in the test code and to be sure that all edge cases are being hit they are going to keep being completely randomly generated for a while longer)
 
 ### Generate Verilog
+make
+    will generate verilog with initialised instruction memory. The instructions are those currently in all_uart.s
+
 sbt run
     - CoreFPGAOutHardCodedInsts has hardcoded instructions sourced from "InstructionsFpgaTests.scala". 
         If everything is working correctly io.sum and io.same should always output true

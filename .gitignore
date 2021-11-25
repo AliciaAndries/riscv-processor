@@ -4,6 +4,9 @@ test_run_dir/*
 *.fir
 *.json
 target/*
+.txt
+InstructionsFpgaTests.scala
+
 ### XilinxISE template
 # intermediate build files
 *.bgn

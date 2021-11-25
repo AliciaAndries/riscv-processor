@@ -36,7 +36,7 @@ file1 = open(file_name_hex, 'w')
 file1.writelines((hex))
 file1.close()
 
-file_name_bin = "../../main/scala/InstructionsFpgaTests.scala"
+file_name_bin = "/home/alicia/Documents/thesis/riscv-processor/src/main/scala/InstructionsFpgaTests.scala"
 
 lines3_start =  ["package core\n\n",
                  "import chisel3._\n",
