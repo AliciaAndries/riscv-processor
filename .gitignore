@@ -4,8 +4,9 @@ test_run_dir/*
 *.fir
 *.json
 target/*
-.txt
-InstructionsFpgaTests.scala
+*.txt
+*FpgaTests.scala
+src/test/resources/project/
 
 ### XilinxISE template
 # intermediate build files
