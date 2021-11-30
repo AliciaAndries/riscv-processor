@@ -70,7 +70,7 @@ class IMemory(dir: String) extends Module with IMem {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(46, UInt(32.W))
+    val mem = SyncReadMem(300, UInt(32.W))
     
     
     loadMemoryFromFileInline(mem, dir)

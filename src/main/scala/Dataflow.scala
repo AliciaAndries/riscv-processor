@@ -208,6 +208,8 @@ class Dataflow(test : Boolean = false) extends Module {
     // if taken === 1 you need to nop the last instruction and set pc
     taken := branchLogic.io.taken || id_ex_is_jump
     //Branch should this be a reg?
+    
+    //TODO: can also be input from rs1
     tBranchaddr := id_ex_immgen + pc
 
     ex_mem_pc           := id_ex_pc
