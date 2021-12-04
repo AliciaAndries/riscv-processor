@@ -102,9 +102,11 @@ class Dataflow(test : Boolean = false) extends Module {
 
 
     ////////////////////////////////////////fetch instruction//////////////////////////////////////// 
-    
+
+    printf("pc = %d, branchaddress: %d, delayed = %d, taken = %d, delayed = %d\n", id_ex_pc >> 2.U, tBranchaddr >> 2.U, branch_address_mpc >> 2.U, taken, taken_pc_1)
+
     val pc_current = Mux(halt || start, pc,
-                        Mux(taken, tBranchaddr - BRANCH_CONTST.offset_for_nops, 
+                        Mux(taken, tBranchaddr, 
                         //Mux(id_ex_is_jump, tBranchaddr - BRANCH_CONTST.offset_for_nops, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
                         Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))//)
     
@@ -210,7 +212,7 @@ class Dataflow(test : Boolean = false) extends Module {
     //Branch should this be a reg?
     
     //TODO: can also be input from rs1
-    tBranchaddr := id_ex_immgen + pc
+    tBranchaddr := id_ex_immgen + Mux(id_ex_op1Ctrl === Control.op1Reg && id_ex_is_jump, reg_input1, id_ex_pc)
 
     ex_mem_pc           := id_ex_pc
     ex_mem_aluresult    := aluresult
