@@ -5,8 +5,19 @@ import chisel3.util._
 import ForwardingUnit._
 
 class FpgaTestIO() extends Bundle{
-    //val led = Output(Bool())
+    val halt_in = Input(Bool())
     val pc = Output(UInt(32.W))
+    val reg_addr = Input(UInt(5.W))
+    val reg_data = Output(UInt(32.W))
+    val rs1data = Output(UInt(32.W))
+    val rs2data = Output(UInt(32.W))
+    val rs1 = Output(UInt(5.W))
+    val rs2 = Output(UInt(5.W))
+    val wdata = Input(UInt(32.W))
+    val waddr = Input(UInt(32.W))
+    val wmask = Input(UInt(4.W))
+    val pc_reset = Input(Bool())
+
     val pc_ex = Output(UInt(32.W))
     val wb = Output(UInt(32.W))
     val halt = Output(Bool())
@@ -17,6 +28,7 @@ class FpgaTestIO() extends Bundle{
     val decode_inst = Output(UInt(32.W))
     val aluop1 = Output(UInt(32.W))
     val aluop2 = Output(UInt(32.W))
+    val aluresult = Output(UInt(32.W))
 }
 
 class DataflowIO() extends Bundle {
@@ -29,7 +41,7 @@ class DataflowIO() extends Bundle {
 
 object PC_CONSTS {
     val pc_init = 0x0.U(32.W)
-    val pc_expt = 0x90.U(32.W)
+    val pc_expt = 0xDEAD.U(32.W)
 }
 
 object BRANCH_CONTST {
@@ -63,6 +75,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val inst                = RegInit(nop)
     val wb_prev_inst        = RegInit(0.U(32.W))
     val rd_prev_inst        = RegInit(0.U(5.W))
+    val wbsrc_prev_inst     = RegInit(0.U(2.W))
     // if/id
     val if_id_pc            = RegInit(0.U(32.W))
     // id/ex
@@ -103,8 +116,8 @@ class Dataflow(test : Boolean = false) extends Module {
 
     ////////////////////////////////////////fetch instruction//////////////////////////////////////// 
     
-    val pc_current = Mux(halt || start, pc,
-                        Mux(taken, tBranchaddr - BRANCH_CONTST.offset_for_nops, 
+    val pc_current = Mux(halt || io.fpgatest.halt_in || start, pc,
+                        Mux(taken, tBranchaddr, 
                         //Mux(id_ex_is_jump, tBranchaddr - BRANCH_CONTST.offset_for_nops, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
                         Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))//)
     
@@ -114,10 +127,9 @@ class Dataflow(test : Boolean = false) extends Module {
     io.iMemIO.req.bits.data := DontCare
 
     pc := pc_current
-    if_id_pc := Mux(halt || taken || id_ex_is_jump, if_id_pc, pc)
+    if_id_pc := Mux(halt || taken || io.fpgatest.halt_in || id_ex_is_jump, if_id_pc, pc)
 
     //printf("mpc = %d, pc = %d, if_id_pc = %d, inst = %x\n\n", pc_current, pc, if_id_pc, inst)
-    io.fpgatest.id_ex_rd := pc_current>>2.U
 
     start := false.B
     ////////////////////////////////////////decode instruction////////////////////////////////////////
@@ -125,9 +137,7 @@ class Dataflow(test : Boolean = false) extends Module {
     //hazard detection
     inst := Mux(taken || id_ex_is_jump || start, nop, 
                 Mux(halt, inst, io.iMemIO.resp.bits.data))   //first clockcycle say next clockcycle it also needs to be nop
-
     io.fpgatest.decode_pc := if_id_pc >> 2.U
-    io.fpgatest.decode_inst := inst
 
     val raddr1 = inst(19,15)
     val raddr2 = inst(24,20)
@@ -139,9 +149,9 @@ class Dataflow(test : Boolean = false) extends Module {
     
     halt := hazardDetection.io.nop
 
-    val inst_halt = Mux(halt, nop, inst)      //need to read mem on next clockcycle otherwise you get prev result  
+    val inst_halt = Mux(halt || io.fpgatest.halt_in, nop, inst)      //need to read mem on next clockcycle otherwise you get prev result  
     control.io.inst := inst_halt
-
+    io.fpgatest.decode_inst := inst_halt
     //immgen extend 12 bits
     immGen.io.inst := inst_halt
     immGen.io.immGenCtrl := control.io.immGenCtrl
@@ -154,21 +164,21 @@ class Dataflow(test : Boolean = false) extends Module {
     val rs2 = regFile.io.rs2            //only R&S-Type
 
     
-    id_ex_is_jump       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.PCSrc === Control.Jump)
-    id_ex_rs1_addr      := Mux(halt || taken || id_ex_is_jump, 0.U, raddr1)
-    id_ex_rs2_addr      := Mux(halt || taken || id_ex_is_jump, 0.U, raddr2)
+    id_ex_is_jump       := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.PCSrc === Control.Jump)
+    id_ex_rs1_addr      := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, raddr1)
+    id_ex_rs2_addr      := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, raddr2)
     id_ex_pc            := if_id_pc
-    id_ex_rs1           := Mux(halt || taken || id_ex_is_jump, 0.U, rs1)
-    id_ex_rs2           := Mux(halt || taken || id_ex_is_jump, 0.U, rs2)
-    id_ex_immgen        := Mux(halt || taken || id_ex_is_jump, 0.U, extended)
-    id_ex_rd            := Mux(halt || taken || id_ex_is_jump, 0.U, inst(11,7))
-    id_ex_aluCtrl       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.aluCtrl)
-    id_ex_op2Ctrl       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.op2Ctrl)
-    id_ex_op1Ctrl       := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.op1Ctrl)
-    id_ex_sttype        := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.sttype)
-    id_ex_ldtype        := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.ldtype)
-    id_ex_wbsrc         := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.wbsrc)
-    id_ex_bt            := Mux(halt || taken || id_ex_is_jump, 0.U, control.io.bt)
+    id_ex_rs1           := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, rs1)
+    id_ex_rs2           := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, rs2)
+    id_ex_immgen        := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, extended)
+    id_ex_rd            := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, inst(11,7))
+    id_ex_aluCtrl       := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.aluCtrl)
+    id_ex_op2Ctrl       := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.op2Ctrl)
+    id_ex_op1Ctrl       := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.op1Ctrl)
+    id_ex_sttype        := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.sttype)
+    id_ex_ldtype        := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.ldtype)
+    id_ex_wbsrc         := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.wbsrc)
+    id_ex_bt            := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.bt)
 
 
     io.fpgatest.halt := taken || halt
@@ -179,9 +189,9 @@ class Dataflow(test : Boolean = false) extends Module {
     forwardingUnit.io.rs1_cur := id_ex_rs1_addr
     forwardingUnit.io.rs2_cur := id_ex_rs2_addr
     forwardingUnit.io.cur_is_load := id_ex_ldtype.orR
-    forwardingUnit.io.rd_ex_mem := ex_mem_rd
-    forwardingUnit.io.rd_mem_wb := mem_wb_rd
-    forwardingUnit.io.rd_wb_out := rd_prev_inst
+    forwardingUnit.io.rd_ex_mem := Mux(ex_mem_wbsrc === Control.WB_F, 0.U, ex_mem_rd)
+    forwardingUnit.io.rd_mem_wb := Mux(mem_wb_wbsrc === Control.WB_F, 0.U, mem_wb_rd)
+    forwardingUnit.io.rd_wb_out := Mux(wbsrc_prev_inst === Control.WB_F, 0.U, rd_prev_inst)
     
     // if its a load its PREV_PREV cause prev is 
     val reg_input1 = Mux(forwardingUnit.io.reg1 === WB_OUT, wb_prev_inst, 
@@ -210,7 +220,7 @@ class Dataflow(test : Boolean = false) extends Module {
     //Branch should this be a reg?
     
     //TODO: can also be input from rs1
-    tBranchaddr := id_ex_immgen + pc
+    tBranchaddr := id_ex_immgen + Mux(id_ex_is_jump && id_ex_op1Ctrl === Control.op1Reg, reg_input1, id_ex_pc)
 
     ex_mem_pc           := id_ex_pc
     ex_mem_aluresult    := aluresult
@@ -235,13 +245,13 @@ class Dataflow(test : Boolean = false) extends Module {
     
     io.dMemIO.req.bits.data := ex_mem_rs2 << doffset
     
-    io.dMemIO.req.bits.mask := MuxLookup(ex_mem_sttype, "b0000".U, 
+    val mask = MuxLookup(ex_mem_sttype, "b0000".U, 
         Array(
             Control.ST_SW -> ("b1111".U),
             Control.ST_SH -> ("b11".U << moffset),      //what if someone puts in addr(1,0) = "01" or "11", no longer aligned so maybe throw a fit?
             Control.ST_SB -> ("b1".U << moffset)
         ))
-    
+    io.dMemIO.req.bits.mask := mask
     io.dMemIO.req.valid := ex_mem_sttype.orR || ex_mem_ldtype.orR 
     
     mem_wb_resp_valid   := io.dMemIO.resp.valid
@@ -256,7 +266,6 @@ class Dataflow(test : Boolean = false) extends Module {
     ////////////////////////////////////////write back////////////////////////////////////////
 
     val memrdata = Mux(mem_wb_resp_valid, io.dMemIO.resp.bits.data, 0.U) >> mem_wb_doffset  //offset cause if you want to read at alu(1,0) = "10" [LB] you need to move result to right to then use the mask below
-    
     val rdata = MuxLookup(mem_wb_ldtype, memrdata.asSInt,
         Array(
             Control.LD_LH  -> (memrdata(15,0).asSInt),   //SInt sign extends the value
@@ -274,9 +283,28 @@ class Dataflow(test : Boolean = false) extends Module {
 
     wb_prev_inst := wbdata
     rd_prev_inst := mem_wb_rd
+    wbsrc_prev_inst := mem_wb_wbsrc
 
     io.fpgatest.wb := wbdata
     io.fpgatest.pc := mem_wb_pc
+
+    ////////////////////////////////////////test stuff////////////////////////////////////////
+
+    when(io.fpgatest.halt_in){
+        regFile.io.raddr1 := io.fpgatest.reg_addr
+        io.fpgatest.reg_data := regFile.io.rs1
+
+    }.otherwise{
+        io.fpgatest.reg_data := 0.U
+    }
+    /* regFile.io.raddr1 := io.fpgatest.reg_addr
+    io.fpgatest.reg_data := regFile.io.rs1 */
+    io.fpgatest.rs1 := id_ex_rs1_addr
+    io.fpgatest.rs2 := id_ex_rs2_addr
+    io.fpgatest.rs1data := aluop1
+    io.fpgatest.rs2data := aluop2
+    io.fpgatest.aluresult := aluresult
+    io.fpgatest.id_ex_rd := mem_wb_rd
 }
 
 object Dataflowdriver extends App{

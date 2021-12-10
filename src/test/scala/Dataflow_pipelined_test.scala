@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 import org.scalatest._
 import chisel3.testers._
-import FPGAInstructions._
 
 class Pipelined_Tester extends BasicTester {
     val dut = Module(new Dataflow)//Module(new Core(new Data))

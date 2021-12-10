@@ -5,7 +5,7 @@ import chisel3.util._
 import org.scalatest._
 import chisel3.testers._
 import Opcode._
-import FPGAInstructions._
+//import FPGAInstructions._
 
 class Dataflow_tester extends BasicTester{
     val dut = Module(new Dataflow(true))

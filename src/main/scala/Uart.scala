@@ -212,5 +212,5 @@ class Uart(val fifoLength: Int, val rxOverclock: Int) extends Module {
   val bits = txState
   val deq_valid = txClk
   val valid = txQueue.io.enq.valid
-  printf(p"\nThis is my text with a $valid, $bits, $valid\n")
+  //printf(p"\nThis is my text with a $valid, $bits, $valid\n")
 }

@@ -4,10 +4,10 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.BaseModule
 import Instructions._
-import FPGAInstructions._
+//import FPGAInstructions._
 
 class CoreIO extends Bundle {
-    //val fpgatest = new FpgaTestIO
+    val fpgatest = new FpgaTestIO
     val ledio = Output(UInt(1.W))
     val uartSerialPort = new UARTSerialPort()
 }
@@ -18,6 +18,7 @@ class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Modu
 
     val dataflow = Module(new Dataflow)
     val dMem = Module(new Memory)
+    //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
 
     val fifoLength  = 128
@@ -41,7 +42,18 @@ class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Modu
     addressArbiter.io.io_req <> dataflow.io.dMemIO.req
 
     ////////////////////////////////////// Memory read/write //////////////////////////////////////
-    dMem.io.req <> addressArbiter.io.mem_req
+    if(test){
+        when(io.fpgatest.halt_in){
+            dMem.io.req.valid := true.B
+            dMem.io.req.bits.addr := io.fpgatest.waddr
+            dMem.io.req.bits.data := io.fpgatest.wdata
+            dMem.io.req.bits.mask := io.fpgatest.wmask
+        } .otherwise{
+            dMem.io.req <> addressArbiter.io.mem_req
+        }
+    } else{
+        dMem.io.req <> addressArbiter.io.mem_req
+    }
     read_value := dMem.io.resp.bits.data
     read_valid := dMem.io.resp.valid
 
@@ -55,16 +67,16 @@ class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Modu
     //////////////////////////////////////   LED operation   //////////////////////////////////////
     io.ledio := addressArbiter.io.led_io
 
-    //io.fpgatest := dataflow.io.fpgatest
+    io.fpgatest <> dataflow.io.fpgatest
     dataflow.io.dMemIO.resp.bits.data := read_value
     dataflow.io.dMemIO.resp.valid := read_valid
 
     dataflow.io.io_out_of_bounds := addressArbiter.io.address_not_in_use
 }
 
-object CoreFPGAOutHardCodedInsts extends App{
+/* object CoreFPGAOutHardCodedInsts extends App{
     (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemoryVec, false), args)
-}
+} */
 
 object CoreFPGAOutInitMem extends App{
     (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), true), args)
