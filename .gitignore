@@ -137,6 +137,8 @@ local.properties
 *.x86_64
 *.hex
 
+!rv32ui-p-*.hex
+
 # Debug files
 *.dSYM/
 ### SBT template
