@@ -39,8 +39,8 @@ class ALU extends Module {
     val sub_res = io.op1 - io.op2
     val slt_res = Mux(io.op1.asSInt < io.op2.asSInt, 1.U, 0.U)
     val sltu_res = Mux(io.op1 < io.op2, 1.U, 0.U)         //pseudo instruction SNEZ, if op2 === 0 return 0
-    val sgt_res = Mux(io.op1.asSInt > io.op2.asSInt, 1.U, 0.U)
-    val sgtu_res = Mux(io.op1 > io.op2, 1.U, 0.U)
+    val sgt_res = Mux(io.op1.asSInt >= io.op2.asSInt, 1.U, 0.U)
+    val sgtu_res = Mux(io.op1 >= io.op2, 1.U, 0.U)
     val sll_res = io.op1 << io.op2(4,0)
     val srl_res = io.op1 >> io.op2(4,0)
     val sra_res = io.op1.asSInt >> io.op2(4,0)
