@@ -80,6 +80,12 @@ class Dataflow_tester extends BasicTester{
         176.U(32.W),
         0.U(32.W)
         )
+    dut.io.fpgatest.wmask := 0.U
+    dut.io.fpgatest.waddr := 0.U
+    dut.io.fpgatest.reg_addr := 0.U
+    dut.io.fpgatest.wdata := 0.U
+    dut.io.fpgatest.halt_in := false.B
+    dut.io.fpgatest.pc_reset := false.B
     
     val iMem = Module(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all.hex"))
     val dMem = Module(new Memory)

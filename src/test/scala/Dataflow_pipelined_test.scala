@@ -18,6 +18,13 @@ class Pipelined_Tester extends BasicTester {
 
     dut.io.iMemIO.resp.bits.data := iMem.io.resp.bits.data
     dut.io.iMemIO.resp.valid := iMem.io.resp.valid */
+    dut.io.fpgatest.wmask := 0.U
+    dut.io.fpgatest.waddr := 0.U
+    dut.io.fpgatest.reg_addr := 0.U
+    dut.io.fpgatest.wdata := 0.U
+    dut.io.fpgatest.halt_in := false.B
+    dut.io.fpgatest.pc_reset := false.B
+
     val prev_mem = RegInit(0.U(32.W))
 
     dut.io.io_out_of_bounds := false.B
