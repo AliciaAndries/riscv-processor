@@ -135,5 +135,5 @@ class CoreNoTest[T <: BaseModule with IMem](imemory: => T, test: Boolean) extend
 } */
 
 object CoreFPGAOutInitMem extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), true), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), false), args)
 }

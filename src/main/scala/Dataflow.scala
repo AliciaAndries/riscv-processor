@@ -196,10 +196,10 @@ class Dataflow(test : Boolean = false) extends Module {
     
     // if its a load its PREV_PREV cause prev is 
     val reg_input1 = Mux(forwardingUnit.io.reg1 === WB_OUT, wb_prev_inst, 
-                            Mux(forwardingUnit.io.reg1 === MEM_WB, wbdata, 
+                            Mux(forwardingUnit.io.reg1 === MEM_WB, /* mem_wb_aluresult, */wbdata, 
                             Mux(forwardingUnit.io.reg1 === EX_MEM_ALU, ex_mem_aluresult, id_ex_rs1)))
     val reg_input2 = Mux(forwardingUnit.io.reg2 === WB_OUT, wb_prev_inst,
-                            Mux(forwardingUnit.io.reg2 === MEM_WB, wbdata,
+                            Mux(forwardingUnit.io.reg2 === MEM_WB, /* mem_wb_aluresult, */wbdata,
                             Mux(forwardingUnit.io.reg2 === EX_MEM_ALU, ex_mem_aluresult, id_ex_rs2)))
 
     val aluop1 = Mux(id_ex_op1Ctrl === Control.op1Reg, reg_input1, id_ex_pc)
