@@ -64,7 +64,6 @@ class IMemory(dir: String) extends Module with IMem {
     val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
     val valid_addr = aligned_addr(7,0)
 
-    val data = Cat(io.req.bits.data(7,0), io.req.bits.data(15,8), io.req.bits.data(23,16), io.req.bits.data(31,24))
     val wen = io.req.bits.mask.orR && io.req.valid
     val ren = io.req.valid && !wen
     io.resp.valid := false.B
@@ -78,7 +77,7 @@ class IMemory(dir: String) extends Module with IMem {
 
     //only write when wen is true
     when(wen){
-        mem.write(valid_addr, data)
+        mem.write(valid_addr, io.req.bits.data)
     }.elsewhen(ren) {
         val data = mem.read(valid_addr,ren)
         io.resp.bits.data := data    //reverse wasnt working?

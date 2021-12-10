@@ -8,7 +8,10 @@ class FpgaTestIO() extends Bundle{
     val pc = Output(UInt(32.W))
     val wb = Output(UInt(32.W))
     val zero = Output(Bool())
+    val aluresult = Output(UInt(32.W))
     val pcsrc = Output(UInt(3.W))
+    val halt_in = Input(Bool())
+    val reg_addr = Input(UInt(5.W))
 }
 
 class DataflowIO() extends Bundle {
@@ -20,7 +23,7 @@ class DataflowIO() extends Bundle {
 } 
 
 object PC_CONSTS {
-    val pc_init = 0x4.U(32.W)
+    val pc_init = 0x0.U(32.W)
     val pc_expt = 0x0.U(32.W)
 }
 
@@ -39,7 +42,7 @@ class Dataflow(test : Boolean = false) extends Module {
     val mpc = WireDefault(PC_CONSTS.pc_init)
     val pc = RegInit(PC_CONSTS.pc_init - 4.U) //32 bit so< 4 byte instructions TODO: should it be init to 0?
     val start = RegInit(true.B)
-    io.fpgatest.pc := pc
+    
 
     //make initialisation phase? 
 
@@ -78,29 +81,27 @@ class Dataflow(test : Boolean = false) extends Module {
     branchLogic.io.comp := alu.io.comp
     branchLogic.io.bt := control.io.bt
     val taken = branchLogic.io.taken
-    io.fpgatest.zero := taken
+    
 
     //fpga test output
     //io.fpgatest.led := taken
-    //io.fpgatest.aluresult := aluresult
-
+    
     //Branch
-    val tBranchaddr = extended + pc
+    val tBranchaddr = extended + Mux(control.io.PCSrc === Control.Jump && control.io.op1Ctrl === Control.op1Reg, rs1, pc)
 
     //pc multiplexer
     val ld_another_clk = RegInit(true.B)
     
-    mpc := Mux(control.io.PCSrc === Control.Br && taken, tBranchaddr, 
-                Mux(control.io.PCSrc === Control.Jump, aluresult, 
+    mpc := Mux((control.io.PCSrc === Control.Br && taken) || control.io.PCSrc === Control.Jump, tBranchaddr, 
                 Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt,
-                Mux((control.io.PCSrc === Control.Pl0) && ld_another_clk, pc, pc + 4.U))))
+                Mux((control.io.PCSrc === Control.Pl0) && ld_another_clk, pc, pc + 4.U)))
     
     when(control.io.ldtype.orR){
         ld_another_clk := !ld_another_clk
     }.otherwise{
         ld_another_clk := true.B
     }
-    io.fpgatest.pcsrc := control.io.PCSrc
+    
     //Memory
     //The SW, SH, and SB instructions store 32-bit, 16-bit, and 8-bit values from the low bits of register rs2 to memory. --> is this correct?
     io.dMemIO.req.bits.addr := aluresult
@@ -136,11 +137,21 @@ class Dataflow(test : Boolean = false) extends Module {
     val wbdata = Mux(control.io.wbsrc === Control.WB_MEM, rdata.asUInt, 
                             Mux(control.io.wbsrc === Control.WB_PC, pc + 4.U, aluresult))
     regFile.io.wdata := wbdata
-    io.fpgatest.wb := wbdata
+    
 
     //update pc
     pc := mpc
 
+
+    if(test){
+        io.fpgatest.wb := wbdata
+        io.fpgatest.pcsrc := control.io.PCSrc
+        io.fpgatest.aluresult := aluresult
+        io.fpgatest.zero := taken
+        io.fpgatest.pc := pc
+    } else {
+        io.fpgatest := DontCare
+    }
 }
 
 object Dataflowdriver extends App{

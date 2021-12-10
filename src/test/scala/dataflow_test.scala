@@ -13,6 +13,7 @@ class Dataflow_tester extends BasicTester{
 
     val correct_wb = VecInit(
         0.U(32.W),  //firs round is nop
+        0.U(32.W),
         1.U(32.W),
         225.U(32.W),
         10.U(32.W),
@@ -68,6 +69,8 @@ class Dataflow_tester extends BasicTester{
         180.U(32.W),
         0.U(32.W)
         )
+
+    dut.io.fpgatest<>DontCare
     
     val iMem = Module(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all.hex"))
     val dMem = Module(new Memory)
