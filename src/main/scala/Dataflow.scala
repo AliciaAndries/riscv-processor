@@ -115,8 +115,11 @@ class Dataflow(test : Boolean = false) extends Module {
 
 
     ////////////////////////////////////////fetch instruction//////////////////////////////////////// 
-    
-    val pc_current = Mux(halt || io.fpgatest.halt_in || start, pc,
+    val test_halt = WireDefault(false.B)
+    if(test){
+        test_halt := io.fpgatest.halt_in
+    }
+    val pc_current = Mux(halt || test_halt || start, pc,
                         Mux(taken, tBranchaddr, 
                         //Mux(id_ex_is_jump, tBranchaddr - BRANCH_CONTST.offset_for_nops, //TODO: this is wrong, you need the control.PCSrc from execution phase, however might change the calc to decode
                         Mux(control.io.PCSrc === Control.EXC, PC_CONSTS.pc_expt, pc + 4.U )))//)
@@ -127,7 +130,7 @@ class Dataflow(test : Boolean = false) extends Module {
     io.iMemIO.req.bits.data := DontCare
 
     pc := pc_current
-    if_id_pc := Mux(halt || taken || io.fpgatest.halt_in || id_ex_is_jump, if_id_pc, pc)
+    if_id_pc := Mux(halt || taken || test_halt || id_ex_is_jump, if_id_pc, pc)
 
     //printf("mpc = %d, pc = %d, if_id_pc = %d, inst = %x\n\n", pc_current, pc, if_id_pc, inst)
 
@@ -137,7 +140,7 @@ class Dataflow(test : Boolean = false) extends Module {
     //hazard detection
     inst := Mux(taken || id_ex_is_jump || start, nop, 
                 Mux(halt, inst, io.iMemIO.resp.bits.data))   //first clockcycle say next clockcycle it also needs to be nop
-    io.fpgatest.decode_pc := if_id_pc >> 2.U
+
 
     val raddr1 = inst(19,15)
     val raddr2 = inst(24,20)
@@ -149,9 +152,9 @@ class Dataflow(test : Boolean = false) extends Module {
     
     halt := hazardDetection.io.nop
 
-    val inst_halt = Mux(halt || io.fpgatest.halt_in, nop, inst)      //need to read mem on next clockcycle otherwise you get prev result  
+    val inst_halt = Mux(halt || test_halt, nop, inst)      //need to read mem on next clockcycle otherwise you get prev result  
     control.io.inst := inst_halt
-    io.fpgatest.decode_inst := inst_halt
+
     //immgen extend 12 bits
     immGen.io.inst := inst_halt
     immGen.io.immGenCtrl := control.io.immGenCtrl
@@ -180,8 +183,6 @@ class Dataflow(test : Boolean = false) extends Module {
     id_ex_wbsrc         := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.wbsrc)
     id_ex_bt            := Mux(halt || taken || id_ex_is_jump || control.io.PCSrc === Control.EXC, 0.U, control.io.bt)
 
-
-    io.fpgatest.halt := taken || halt
     ////////////////////////////////////////execute////////////////////////////////////////
 
     alu.io.operation := id_ex_aluCtrl
@@ -200,17 +201,11 @@ class Dataflow(test : Boolean = false) extends Module {
     val reg_input2 = Mux(forwardingUnit.io.reg2 === WB_OUT, wb_prev_inst,
                             Mux(forwardingUnit.io.reg2 === MEM_WB, wbdata,
                             Mux(forwardingUnit.io.reg2 === EX_MEM_ALU, ex_mem_aluresult, id_ex_rs2)))
-    io.fpgatest.reg_input1 := forwardingUnit.io.reg1
-    io.fpgatest.reg_input2 := forwardingUnit.io.reg2
-    io.fpgatest.pc_ex := id_ex_pc
 
     val aluop1 = Mux(id_ex_op1Ctrl === Control.op1Reg, reg_input1, id_ex_pc)
     val aluop2 = Mux(id_ex_op2Ctrl === Control.op2Imm, id_ex_immgen, reg_input2)
     alu.io.op1 := aluop1
     alu.io.op2 := aluop2
-
-    io.fpgatest.aluop1 := aluop1
-    io.fpgatest.aluop2 := aluop2
     
     aluresult := alu.io.result
     branchLogic.io.comp := alu.io.comp
@@ -285,26 +280,39 @@ class Dataflow(test : Boolean = false) extends Module {
     rd_prev_inst := mem_wb_rd
     wbsrc_prev_inst := mem_wb_wbsrc
 
-    io.fpgatest.wb := wbdata
-    io.fpgatest.pc := mem_wb_pc
-
     ////////////////////////////////////////test stuff////////////////////////////////////////
+    if(test){
+        when(io.fpgatest.halt_in){
+            regFile.io.raddr1 := io.fpgatest.reg_addr
+            io.fpgatest.reg_data := regFile.io.rs1
 
-    when(io.fpgatest.halt_in){
-        regFile.io.raddr1 := io.fpgatest.reg_addr
-        io.fpgatest.reg_data := regFile.io.rs1
+        }.otherwise{
+            io.fpgatest.reg_data := 0.U
+        }
+        /* regFile.io.raddr1 := io.fpgatest.reg_addr
+        io.fpgatest.reg_data := regFile.io.rs1 */
+        io.fpgatest.rs1 := id_ex_rs1_addr
+        io.fpgatest.rs2 := id_ex_rs2_addr
+        io.fpgatest.rs1data := aluop1
+        io.fpgatest.rs2data := aluop2
+        io.fpgatest.aluresult := aluresult
+        io.fpgatest.id_ex_rd := mem_wb_rd
 
-    }.otherwise{
-        io.fpgatest.reg_data := 0.U
+        io.fpgatest.wb := wbdata
+        io.fpgatest.pc := mem_wb_pc
+
+        io.fpgatest.aluop1 := aluop1
+        io.fpgatest.aluop2 := aluop2
+
+        io.fpgatest.reg_input1 := forwardingUnit.io.reg1
+        io.fpgatest.reg_input2 := forwardingUnit.io.reg2
+        io.fpgatest.pc_ex := id_ex_pc
+        io.fpgatest.halt := taken || halt
+        io.fpgatest.decode_inst := inst_halt
+        io.fpgatest.decode_pc := if_id_pc >> 2.U
+    } else {
+        io.fpgatest <> DontCare
     }
-    /* regFile.io.raddr1 := io.fpgatest.reg_addr
-    io.fpgatest.reg_data := regFile.io.rs1 */
-    io.fpgatest.rs1 := id_ex_rs1_addr
-    io.fpgatest.rs2 := id_ex_rs2_addr
-    io.fpgatest.rs1data := aluop1
-    io.fpgatest.rs2data := aluop2
-    io.fpgatest.aluresult := aluresult
-    io.fpgatest.id_ex_rd := mem_wb_rd
 }
 
 object Dataflowdriver extends App{
