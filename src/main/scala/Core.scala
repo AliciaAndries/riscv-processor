@@ -6,10 +6,8 @@ import chisel3.experimental.BaseModule
 import Instructions._
 //import FPGAInstructions._
 
-class CoreIO extends Bundle {
+class CoreIO extends CoreNoTestIO {
     val fpgatest = new FpgaTestIO
-    val ledio = Output(UInt(1.W))
-    val uartSerialPort = new UARTSerialPort()
 }
 
 class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Module {
@@ -17,7 +15,7 @@ class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Modu
     val io = IO(new CoreIO)
 
     val dataflow = Module(new Dataflow(test))
-    val dMem = Module(new Memory)
+    val dMem = Module(new Memory(2500))
     //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
 
@@ -84,7 +82,7 @@ class CoreNoTest[T <: BaseModule with IMem](imemory: => T, test: Boolean) extend
     val io = IO(new CoreNoTestIO)
 
     val dataflow = Module(new Dataflow(false))
-    val dMem = Module(new Memory)
+    val dMem = Module(new Memory(500))
     //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
 

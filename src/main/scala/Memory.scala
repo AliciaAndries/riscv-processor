@@ -25,7 +25,7 @@ class MemoryIO extends Bundle {
     val resp = Valid(new MemoryResp)
 }
 
-class Memory extends Module {
+class Memory(Memsize: Int = 500) extends Module {
     
     //syncreadmem handy because it only reads and writes on the next clockcycle so is good for pipelined version as you dont need an extra register to hold rdata
     //for non pipelined annoying because you need to wait a clockcycle
@@ -42,7 +42,7 @@ class Memory extends Module {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(MemorySize.BMemBytes, Vec(4, UInt(8.W)))
+    val mem = SyncReadMem(Memsize, Vec(4, UInt(8.W)))
 
     //only write when wen is true
     when(wen){
@@ -55,47 +55,11 @@ class Memory extends Module {
     }
 }
 
-class MemoryTest(dir: String) extends Module {
-    
-    //syncreadmem handy because it only reads and writes on the next clockcycle so is good for pipelined version as you dont need an extra register to hold rdata
-    //for non pipelined annoying because you need to wait a clockcycle
-
-    //chapter 14
-    val io = IO(new MemoryIO)
-
-    val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
-    val valid_addr = aligned_addr
-
-    val wen = io.req.bits.mask.orR && io.req.valid
-    val ren = io.req.valid && !wen
-    io.resp.valid := false.B
-    io.resp.bits.data := DontCare
-
-    val mem = SyncReadMem(MemorySize.BMemBytes, UInt(32.W))
-
-    loadMemoryFromFileInline(mem, dir)
-
-    val data0 = Mux(io.req.bits.mask(0), io.req.bits.data(7,0), 0.U)
-    val data1 = Mux(io.req.bits.mask(1), io.req.bits.data(15,8), 0.U)
-    val data2 = Mux(io.req.bits.mask(2), io.req.bits.data(23,16), 0.U)
-    val data3 = Mux(io.req.bits.mask(3), io.req.bits.data(31,24), 0.U)
-    val wdata = Cat(data3, data2, data1, data0)
-    when(wen){
-        printf("wdata = %x\n", wdata)
-        mem.write(valid_addr, wdata)
-    }.elsewhen(ren) {
-        val rdata = mem.read(valid_addr,ren)
-        io.resp.bits.data := rdata//Cat(data(3), data(2), data(1), data(0))
-        printf("rdata = %x\n",rdata)
-        io.resp.valid := true.B
-    }
-}
-
 trait IMem{
     val io = new MemoryIO
 }
 
-class IMemory(dir: String) extends Module with IMem {
+class IMemory(dir: String, Memsize: Int = 500) extends Module with IMem {
     override val io = IO(new MemoryIO)
     val nop = "b00000000000000000000000000010011".U(32.W)
 
@@ -107,7 +71,7 @@ class IMemory(dir: String) extends Module with IMem {
     io.resp.valid := false.B
     io.resp.bits.data := DontCare
 
-    val mem = SyncReadMem(MemorySize.IMemBytes, UInt(32.W))
+    val mem = SyncReadMem(Memsize, UInt(32.W))
     
     
     loadMemoryFromFileInline(mem, dir)
@@ -153,5 +117,5 @@ object IMemorydriver extends App{
 }
 
 object DMemorydriver extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new Memory, args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new Memory(500), args)
 }

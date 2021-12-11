@@ -131,15 +131,15 @@ class TestCoreAll extends ChiselFlatSpec {
 
         iotesters.Driver.execute(
         args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-        dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-add.hex"), true)
+        dut = () => new Core(new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true)
         ) { c =>
-            new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-add.hex")
+            new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-add.hex")
         } should be (true)
         /* iotesters.Driver.execute(Array(), () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-add.hex"), true))(testerGen = c => { 
             CoreTester_compliance(c)
         }) should be (true) */
     }
-"rv32ui-p-addi.hex tester using iotesters" should "be pass test." in {
+/* "rv32ui-p-addi.hex tester using iotesters" should "be pass test." in {
     val targetDirName = "test_run_dir/CoreTester_compliance"
     FileUtils.makeDirectory(targetDirName)
 
@@ -669,5 +669,5 @@ class TestCoreAll extends ChiselFlatSpec {
     ) { c =>
         new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-xori.hex")
     } should be (true)
-}
+} */
 }
