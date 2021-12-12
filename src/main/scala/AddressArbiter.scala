@@ -13,7 +13,7 @@ class AddressArbiterIO extends Bundle {
     val address_not_in_use = Output(Bool())
 }
 
-class AddressArbiter extends Module {
+class AddressArbiter(DataMemSize: Int = MemorySize.BMemBytes) extends Module {
     val io = IO(new AddressArbiterIO)
     
     io.address_not_in_use := false.B
@@ -35,15 +35,15 @@ class AddressArbiter extends Module {
 
     when (io.io_req.valid){
         ////////////////////////////////////// Memory read/write //////////////////////////////////////
-        when(io.io_req.bits.addr < (BMemBytes * 4).U){
+        when(io.io_req.bits.addr < (DataMemSize * 4).U){
             io.io_req <> io.mem_req
         } 
         //////////////////////////////////////   LED operation   //////////////////////////////////////
-        .elsewhen(io.io_req.bits.addr === (BMemBytes * 4).U){
+        .elsewhen(io.io_req.bits.addr === (DataMemSize * 4).U){
             io.led_io := io.io_req.bits.data(0)
         }
         //////////////////////////////////////        UART       //////////////////////////////////////
-        .elsewhen(io.io_req.bits.addr < (BMemBytes * 4 + 20).U){
+        .elsewhen(io.io_req.bits.addr < (DataMemSize * 4 + 20).U){
             // Reads
             when(io.io_req.valid && !io.io_req.bits.mask.orR) {
                 when(io.io_req.bits.addr(4, 0) === 0x04.U) {

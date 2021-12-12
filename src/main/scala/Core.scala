@@ -10,12 +10,12 @@ class CoreIO extends CoreNoTestIO {
     val fpgatest = new FpgaTestIO
 }
 
-class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Module {
+class Core[T <: BaseModule with IMem](DMemSize:  Int = 500, imemory: => T, test: Boolean) extends Module {
 
     val io = IO(new CoreIO)
 
     val dataflow = Module(new Dataflow(test))
-    val dMem = Module(new Memory(2500))
+    val dMem = Module(new Memory(DMemSize))
     //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
 
@@ -23,7 +23,7 @@ class Core[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Modu
     val rxOverclock = 16
     val uart = Module(new Uart(fifoLength, rxOverclock))
 
-    val addressArbiter = Module(new AddressArbiter)
+    val addressArbiter = Module(new AddressArbiter(DMemSize))
 
     val read_value = WireDefault(0.U(32.W))
     val read_valid = WireDefault(false.B)
@@ -77,12 +77,12 @@ class CoreNoTestIO extends Bundle {
     val uartSerialPort = new UARTSerialPort()
 }
 
-class CoreNoTest[T <: BaseModule with IMem](imemory: => T, test: Boolean) extends Module {
+class CoreNoTest[T <: BaseModule with IMem](DMemSize:  Int, imemory: => T, test: Boolean) extends Module {
 
     val io = IO(new CoreNoTestIO)
 
     val dataflow = Module(new Dataflow(false))
-    val dMem = Module(new Memory(500))
+    val dMem = Module(new Memory(DMemSize))
     //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
 
@@ -90,7 +90,7 @@ class CoreNoTest[T <: BaseModule with IMem](imemory: => T, test: Boolean) extend
     val rxOverclock = 16
     val uart = Module(new Uart(fifoLength, rxOverclock))
 
-    val addressArbiter = Module(new AddressArbiter)
+    val addressArbiter = Module(new AddressArbiter(DMemSize))
 
     val read_value = WireDefault(0.U(32.W))
     val read_valid = WireDefault(false.B)
@@ -133,5 +133,5 @@ class CoreNoTest[T <: BaseModule with IMem](imemory: => T, test: Boolean) extend
 } */
 
 object CoreFPGAOutInitMem extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), false), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), false), args)
 }

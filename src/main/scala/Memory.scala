@@ -43,10 +43,10 @@ class Memory(Memsize: Int = 500) extends Module {
     io.resp.bits.data := DontCare
 
     val mem = SyncReadMem(Memsize, Vec(4, UInt(8.W)))
-
     //only write when wen is true
     when(wen){
         mem.write(valid_addr, data, io.req.bits.mask.asBools)
+        //printf("data = %x\n", io.req.bits.data)
     }.elsewhen(ren) {
         val data = mem.read(valid_addr,ren)
         //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?
@@ -82,7 +82,7 @@ class IMemory(dir: String, Memsize: Int = 500) extends Module with IMem {
         mem.write(aligned_addr, io.req.bits.data)
     }.elsewhen(ren) {
         val data = mem.read(aligned_addr,ren)
-        io.resp.bits.data := Mux(valid_addr, data, nop)
+        io.resp.bits.data := data//Mux(valid_addr, data, nop) //register valid_addr?
         io.resp.valid := true.B
     }
 }

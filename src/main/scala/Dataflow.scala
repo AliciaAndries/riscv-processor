@@ -26,8 +26,6 @@ class FpgaTestIO() extends Bundle{
     val id_ex_rd = Output(UInt(5.W))
     val decode_pc = Output(UInt(32.W))
     val decode_inst = Output(UInt(32.W))
-    val aluop1 = Output(UInt(32.W))
-    val aluop2 = Output(UInt(32.W))
     val aluresult = Output(UInt(32.W))
 }
 
@@ -36,8 +34,12 @@ class DataflowIO() extends Bundle {
     val dMemIO = Flipped(new MemoryIO)
     val iMemIO = Flipped(new MemoryIO)
     val io_out_of_bounds = Input(Bool()) 
+}
+
+class DataflowTestIO() extends DataflowIO {
     val fpgatest = new FpgaTestIO
-} 
+
+}
 
 object PC_CONSTS {
     val pc_init = 0x0.U(32.W)
@@ -49,7 +51,7 @@ object BRANCH_CONTST {
 }
 
 class Dataflow(test : Boolean = false) extends Module {
-    val io = IO(new DataflowIO)
+    val io = IO(new DataflowTestIO)
 
     val immGen = Module(new ImmGen)
     val control = Module(new Control)
@@ -281,35 +283,32 @@ class Dataflow(test : Boolean = false) extends Module {
     wbsrc_prev_inst := mem_wb_wbsrc
 
     ////////////////////////////////////////test stuff////////////////////////////////////////
-    if(test){
-        when(io.fpgatest.halt_in){
-            regFile.io.raddr1 := io.fpgatest.reg_addr
-            io.fpgatest.reg_data := regFile.io.rs1
+        if(test){
+            when(io.fpgatest.halt_in){
+                regFile.io.raddr1 := io.fpgatest.reg_addr
+                io.fpgatest.reg_data := regFile.io.rs1
 
-        }.otherwise{
-            io.fpgatest.reg_data := 0.U
-        }
-        /* regFile.io.raddr1 := io.fpgatest.reg_addr
-        io.fpgatest.reg_data := regFile.io.rs1 */
-        io.fpgatest.rs1 := id_ex_rs1_addr
-        io.fpgatest.rs2 := id_ex_rs2_addr
-        io.fpgatest.rs1data := aluop1
-        io.fpgatest.rs2data := aluop2
-        io.fpgatest.aluresult := aluresult
-        io.fpgatest.id_ex_rd := mem_wb_rd
+            }.otherwise{
+                io.fpgatest.reg_data := 0.U
+            }
+            /* regFile.io.raddr1 := io.fpgatest.reg_addr
+            io.fpgatest.reg_data := regFile.io.rs1 */
+            io.fpgatest.rs1 := id_ex_rs1_addr
+            io.fpgatest.rs2 := id_ex_rs2_addr
+            io.fpgatest.rs1data := aluop1
+            io.fpgatest.rs2data := aluop2
+            io.fpgatest.aluresult := aluresult
+            io.fpgatest.id_ex_rd := mem_wb_rd
 
-        io.fpgatest.wb := wbdata
-        io.fpgatest.pc := mem_wb_pc
+            io.fpgatest.wb := wbdata
+            io.fpgatest.pc := mem_wb_pc
 
-        io.fpgatest.aluop1 := aluop1
-        io.fpgatest.aluop2 := aluop2
-
-        io.fpgatest.reg_input1 := forwardingUnit.io.reg1
-        io.fpgatest.reg_input2 := forwardingUnit.io.reg2
-        io.fpgatest.pc_ex := id_ex_pc
-        io.fpgatest.halt := taken || halt
-        io.fpgatest.decode_inst := inst_halt
-        io.fpgatest.decode_pc := if_id_pc >> 2.U
+            io.fpgatest.reg_input1 := forwardingUnit.io.reg1
+            io.fpgatest.reg_input2 := forwardingUnit.io.reg2
+            io.fpgatest.pc_ex := id_ex_pc
+            io.fpgatest.halt := taken || halt
+            io.fpgatest.decode_inst := inst_halt
+            io.fpgatest.decode_pc := if_id_pc >> 2.U
     } else {
         io.fpgatest <> DontCare
     }

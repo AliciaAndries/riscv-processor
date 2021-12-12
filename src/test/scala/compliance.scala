@@ -131,15 +131,15 @@ class TestCoreAll extends ChiselFlatSpec {
 
         iotesters.Driver.execute(
         args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-        dut = () => new Core(new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true)
+        dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true)
         ) { c =>
             new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-add.hex")
         } should be (true)
-        /* iotesters.Driver.execute(Array(), () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-add.hex"), true))(testerGen = c => { 
+        /* iotesters.Driver.execute(Array(), () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true))(testerGen = c => { 
             CoreTester_compliance(c)
         }) should be (true) */
     }
-/* "rv32ui-p-addi.hex tester using iotesters" should "be pass test." in {
+"rv32ui-p-addi.hex tester using iotesters" should "be pass test." in {
     val targetDirName = "test_run_dir/CoreTester_compliance"
     FileUtils.makeDirectory(targetDirName)
 
@@ -147,9 +147,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-addi.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-addi.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-addi.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-addi.hex")
     } should be (true)
 }
 
@@ -161,9 +161,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-and.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-and.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-and.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-and.hex")
     } should be (true)
 }
 
@@ -175,9 +175,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-andi.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-andi.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-andi.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-andi.hex")
     } should be (true)
 }
 
@@ -189,9 +189,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-auipc.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-auipc.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-auipc.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-auipc.hex")
     } should be (true)
 }
 
@@ -203,9 +203,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-beq.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-beq.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-beq.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-beq.hex")
     } should be (true)
 }
 
@@ -217,9 +217,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bge.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-bge.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bge.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bge.hex")
     } should be (true)
 }
 
@@ -231,9 +231,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bgeu.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-bgeu.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bgeu.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bgeu.hex")
     } should be (true)
 }
 
@@ -245,9 +245,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-blt.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-blt.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-blt.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-blt.hex")
     } should be (true)
 }
 
@@ -259,9 +259,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bltu.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-bltu.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bltu.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bltu.hex")
     } should be (true)
 }
 
@@ -273,9 +273,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bne.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-bne.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-bne.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bne.hex")
     } should be (true)
 }
 
@@ -287,9 +287,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-fence_i.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-fence_i.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-fence_i.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-fence_i.hex")
     } should be (true)
 } */
 
@@ -301,9 +301,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-jal.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-jal.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-jal.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-jal.hex")
     } should be (true)
 }
 
@@ -315,9 +315,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-jalr.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-jalr.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-jalr.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-jalr.hex")
     } should be (true)
 }
 
@@ -329,9 +329,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lb.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-lb.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lb.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lb.hex")
     } should be (true)
 }
 
@@ -343,9 +343,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lbu.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-lbu.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lbu.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lbu.hex")
     } should be (true)
 }
 
@@ -357,9 +357,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lh.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-lh.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lh.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lh.hex")
     } should be (true)
 }
 
@@ -371,9 +371,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lhu.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-lhu.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lhu.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lhu.hex")
     } should be (true)
 }
 
@@ -385,9 +385,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lui.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-lui.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lui.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lui.hex")
     } should be (true)
 }
 
@@ -399,9 +399,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lw.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-lw.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-lw.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lw.hex")
     } should be (true)
 }
 
@@ -413,9 +413,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-or.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-or.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-or.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-or.hex")
     } should be (true)
 }
 
@@ -427,9 +427,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-ori.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-ori.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-ori.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-ori.hex")
     } should be (true)
 }
 
@@ -441,9 +441,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sb.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sb.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sb.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sb.hex")
     } should be (true)
 }
 
@@ -455,9 +455,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sh.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sh.hex")
     } should be (true)
 }
 
@@ -469,9 +469,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-simple.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-simple.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-simple.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-simple.hex")
     } should be (true)
 }
 
@@ -483,9 +483,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sll.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sll.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sll.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sll.hex")
     } should be (true)
 }
 
@@ -497,9 +497,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-slli.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-slli.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-slli.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-slli.hex")
     } should be (true)
 }
 
@@ -511,9 +511,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-slt.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-slt.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-slt.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-slt.hex")
     } should be (true)
 }
 
@@ -525,9 +525,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-slti.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-slti.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-slti.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-slti.hex")
     } should be (true)
 }
 
@@ -539,9 +539,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sltiu.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sltiu.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sltiu.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sltiu.hex")
     } should be (true)
 }
 
@@ -553,9 +553,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sltu.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sltu.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sltu.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sltu.hex")
     } should be (true)
 }
 
@@ -567,9 +567,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sra.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sra.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sra.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sra.hex")
     } should be (true)
 }
 
@@ -581,9 +581,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-srai.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-srai.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-srai.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-srai.hex")
     } should be (true)
 }
 
@@ -595,9 +595,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-srl.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-srl.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-srl.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-srl.hex")
     } should be (true)
 }
 
@@ -609,9 +609,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-srli.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-srli.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-srli.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-srli.hex")
     } should be (true)
 }
 
@@ -623,9 +623,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sub.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sub.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sub.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sub.hex")
     } should be (true)
 }
 
@@ -637,9 +637,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sw.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-sw.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sw.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sw.hex")
     } should be (true)
 }
 
@@ -651,9 +651,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-xor.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-xor.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-xor.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-xor.hex")
     } should be (true)
 }
 
@@ -665,9 +665,9 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new Core(new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-xori.hex"), true)
+    dut = () => new Core(2500, new IMemory("src/test/official_resources/rv32ui-p-xori.hex",2500), true)
     ) { c =>
-        new CoreTester_compliance(c,"/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-xori.hex")
+        new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-xori.hex")
     } should be (true)
-} */
+}
 }
