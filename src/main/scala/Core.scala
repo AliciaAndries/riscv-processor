@@ -10,11 +10,11 @@ class CoreIO extends CoreNoTestIO {
     val fpgatest = new FpgaTestIO
 }
 
-class Core[T <: BaseModule with IMem](DMemSize:  Int = 500, imemory: => T, test: Boolean) extends Module {
+class Core[T <: BaseModule with IMem, P <: BaseModule with DataflowTrait](DMemSize:  Int = 500, imemory: => T, Dataflow: => P, test: Boolean) extends Module {
 
     val io = IO(new CoreIO)
 
-    val dataflow = Module(new Dataflow(test))
+    val dataflow = Module(Dataflow)
     val dMem = Module(new Memory(DMemSize))
     //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
@@ -77,11 +77,11 @@ class CoreNoTestIO extends Bundle {
     val uartSerialPort = new UARTSerialPort()
 }
 
-class CoreNoTest[T <: BaseModule with IMem](DMemSize:  Int, imemory: => T, test: Boolean) extends Module {
+class CoreNoTest[T <: BaseModule with IMem, P <: BaseModule with DataflowTrait](DMemSize:  Int = 500, imemory: => T, Dataflow: => P, test: Boolean) extends Module {
 
     val io = IO(new CoreNoTestIO)
 
-    val dataflow = Module(new Dataflow(false))
+    val dataflow = Module(Dataflow)
     val dMem = Module(new Memory(DMemSize))
     //val dMem = Module(new MemoryTest("/home/alicia/Documents/thesis/riscv-processor/src/test/official_resources/rv32ui-p-sh.hex"))
     val iMem = Module(imemory)
@@ -132,6 +132,10 @@ class CoreNoTest[T <: BaseModule with IMem](DMemSize:  Int, imemory: => T, test:
     (new chisel3.stage.ChiselStage).emitVerilog(new Core(new IMemoryVec, false), args)
 } */
 
-object CoreFPGAOutInitMem extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), false), args)
+object CorePipelined extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), new Dataflow(false), false), args)
+}
+
+object CoreNonPipelined extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new CoreNoTest(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), new DataflowNotPipelined(false), false), args)
 }

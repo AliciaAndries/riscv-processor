@@ -29,6 +29,10 @@ class FpgaTestIO() extends Bundle{
     val aluresult = Output(UInt(32.W))
 }
 
+trait DataflowTrait {
+    val io = new DataflowTestIO
+}
+
 class DataflowIO() extends Bundle {
     //val instrRegIO = Flipped(new InstructionRegIO)
     val dMemIO = Flipped(new MemoryIO)
@@ -50,8 +54,8 @@ object BRANCH_CONTST {
     val offset_for_nops = 8.U
 }
 
-class Dataflow(test : Boolean = false) extends Module {
-    val io = IO(new DataflowTestIO)
+class Dataflow(test : Boolean = false) extends Module with DataflowTrait{
+    override val io = IO(new DataflowTestIO)
 
     val immGen = Module(new ImmGen)
     val control = Module(new Control)

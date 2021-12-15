@@ -4,8 +4,8 @@ package core
 import chisel3._
 import chisel3.util._
 
-class DataflowNotPipelined(test : Boolean = false) extends Module {
-    val io = IO(new DataflowTestIO)
+class DataflowNotPipelined(test : Boolean = false) extends Module with DataflowTrait{
+    override val io = IO(new DataflowTestIO)
 
     //val instructionReg = Module(new InstructionReg("/filepath")) maybe use this for testing put it in the core
     val immGen = Module(new ImmGen)

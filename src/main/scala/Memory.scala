@@ -64,7 +64,7 @@ class IMemory(dir: String, Memsize: Int = 500) extends Module with IMem {
     val nop = "b00000000000000000000000000010011".U(32.W)
 
     val aligned_addr = (io.req.bits.addr >> 2.U).asUInt
-    val valid_addr = Mux(aligned_addr < MemorySize.IMemBytes.U(32.W), true.B, false.B)
+    val valid_addr = Mux(aligned_addr < Memsize.U(32.W), true.B, false.B)
     
     val wen = io.req.bits.mask.orR && io.req.valid
     val ren = io.req.valid && !wen
