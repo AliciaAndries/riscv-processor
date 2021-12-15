@@ -87,12 +87,12 @@ object Control {
             LUI -> List(ALU.XXX_ALU, op2Imm, op1Reg, ImmGen.U, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),    //ALU_res is written to wb so XXX_ALU makes op2 pass through and op2 == immGen
             AUIPC -> List(ALU.ADD_ALU, op2Imm, op1PC, ImmGen.U, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             //Branches
-            BEQ -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.EQ),      //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
-            BNE -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.NE),
+            BEQ -> List(ALU.SUB_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.EQ),      //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
+            BNE -> List(ALU.SUB_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.NE),
             BLT -> List(ALU.SLT_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.LT),
             BLTU -> List(ALU.SLTU_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.LTU),
-            BGE -> List(ALU.SGT_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.GE),
-            BGEU -> List(ALU.SGTU_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.GEU),
+            BGE -> List(ALU.SLT_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.GE),
+            BGEU -> List(ALU.SLTU_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.GEU),
             //Unconditional jump
             JAL -> List(ALU.ADD_ALU, op2Imm, op1PC, ImmGen.J, Jump, ST_XX, LD_XX, WB_PC, Branch.XX),
             JALR -> List(ALU.ADD_ALU, op2Imm, op1Reg, ImmGen.I, Jump, ST_XX, LD_XX, WB_PC, Branch.XX),

@@ -10,7 +10,7 @@ import org.scalatest.{Matchers, FlatSpec}
 import firrtl.FileUtils
 import chisel3.experimental.BaseModule
 
-class Core_tester(c: Core[IMemory]) extends PeekPokeTester(c) {    
+class Core_tester(c: Core[IMemory, Dataflow]) extends PeekPokeTester(c) {    
   for(cntr <- 0 until 53) {
     println(f"ioled = ${peek(c.io.ledio)}%d, uart = ${peek(c.io.uartSerialPort.tx)}%d\n")
     step(1)

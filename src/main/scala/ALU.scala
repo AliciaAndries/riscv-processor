@@ -21,6 +21,17 @@ object ALU { //in riscv mini this is for some reason an object but like why?
     val XXX_ALU = 15.U(4.W)
 }
 
+class ALUBasicIO extends Bundle{
+    val op1 = Input(UInt(32.W))
+    val op2 = Input(UInt(32.W))
+    val operation = Input(UInt(4.W))
+    val result = Output(UInt(32.W))
+}
+
+class ALUWithBranchIO extends ALUBasicIO{
+    val comp = Output(Bool())
+}
+
 class ALUIO extends Bundle {
     val op1 = Input(UInt(32.W))
     val op2 = Input(UInt(32.W))
@@ -67,3 +78,59 @@ class ALU extends Module {
                         SGTU_ALU -> sgtu_res(0)
                     ))
     }
+
+class ALUBasic extends Module{
+    val io = IO(new ALUBasicIO)
+
+    val and_res = io.op1 & io.op2
+    val or_res = io.op1 | io.op2
+    val xor_res = io.op1 ^ io.op2
+    val add_res = io.op1 + io.op2
+    val sub_res = io.op1 - io.op2
+    val slt_res = Mux(io.op1.asSInt < io.op2.asSInt, 1.U, 0.U)
+    val sltu_res = Mux(io.op1 < io.op2, 1.U, 0.U)         //pseudo instruction SNEZ, if op2 === 0 return 0
+    val sll_res = io.op1 << io.op2(4,0)
+    val srl_res = io.op1 >> io.op2(4,0)
+    val sra_res = io.op1.asSInt >> io.op2(4,0)
+
+    io.result := MuxLookup(io.operation, io.op2,
+                    Seq(
+                        AND_ALU -> and_res,
+                        OR_ALU -> or_res,
+                        XOR_ALU -> xor_res,
+                        ADD_ALU -> add_res,
+                        SUB_ALU -> sub_res,
+                        SLT_ALU -> slt_res,
+                        SLTU_ALU -> sltu_res,
+                        SLL_ALU -> sll_res,
+                        SRL_ALU -> srl_res,
+                        SRA_ALU -> sra_res.asUInt,
+                    ))
+} 
+
+object ALUBasic{
+    def apply(op1: UInt, op2: UInt, operation: UInt) = {
+    val alub = Module(new ALUBasic)
+    alub.io.op1 := op1
+    alub.io.op2 := op2
+    alub.io.operation := operation
+    alub.io.result
+  }
+}
+
+class ALUWithBranch extends Module{
+val io = IO(new ALUWithBranchIO)
+
+    val sub_res = io.op1 - io.op2
+    val slt_res = Mux(io.op1.asSInt < io.op2.asSInt, 1.U, 0.U)
+    val sltu_res = Mux(io.op1 < io.op2, 1.U, 0.U) 
+
+    val result = ALUBasic(io.op1, io.op2, io.operation)
+    io.result := result
+
+    io.comp := MuxLookup(io.operation === SUB_ALU, !sub_res.orR,
+                    Seq(
+                        SLT_ALU -> slt_res(0),
+                        SLTU_ALU -> sltu_res(0)
+                    ))
+}

@@ -13,7 +13,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 import java.io.{BufferedWriter, FileWriter ,PrintWriter}
 
-case class CoreTester_compliance(c: Core[IMemory], dir: String) extends PeekPokeTester(c) {
+case class CoreTester_compliance(c: Core[IMemory, Dataflow], dir: String) extends PeekPokeTester(c) {
     // PrintWriter
 
     val pw = new PrintWriter(new File("log.txt" ))

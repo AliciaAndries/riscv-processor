@@ -6,7 +6,7 @@ import org.scalatest._
 import chisel3.testers._
 
 class Pipelined_Tester extends BasicTester {
-    val dut = Module(new Dataflow)//Module(new Core(new Data))
+    val dut = Module(new Dataflow(true))//Module(new Core(new Data))
     val dMem = Module(new Memory)
     val stages = 5.U
     val (cntr, done) = Counter(true.B, 50)
@@ -51,17 +51,17 @@ class Pipelined_Tester extends BasicTester {
       printf("\nload and arithemtic hazards are solved\n")
     } */
     when(dut.io.fpgatest.pc>>2.U === 13.U){
-      //assert(prev_mem === 69.U)
+      assert(prev_mem === 69.U)
       printf("\nload and arithemtic hazards are solved\n")
     }
     
     when(dut.io.fpgatest.pc>>2.U === 23.U){
-      //assert(prev_mem === 6.U)
+      assert(prev_mem === 6.U)
       printf("\nbeq hazards are solved\n")
     }
     
     when(dut.io.fpgatest.pc>>2.U === 30.U){
-      //assert(prev_mem === 100.U)
+      assert(prev_mem === 100.U)
       printf("\njal hazards are solved\n")
     }
     prev_mem := dut.io.dMemIO.req.bits.data

@@ -22,5 +22,5 @@ class BranchLogicIO extends Bundle {
 class BranchLogic extends Module {
     val io = IO(new BranchLogicIO)
 
-    io.taken := Mux(io.bt === Branch.NE, !io.comp, Mux(io.bt === Branch.XX, false.B, io.comp))
+    io.taken := Mux(io.bt === Branch.NE /* || io.bt === Branch.GE || io.bt === Branch.GEU */, !io.comp, Mux(io.bt === Branch.XX, false.B, io.comp))
 }
