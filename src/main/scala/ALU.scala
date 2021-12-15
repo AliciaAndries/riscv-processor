@@ -74,8 +74,6 @@ class ALU extends Module {
                     Seq(
                         SLT_ALU -> slt_res(0),
                         SLTU_ALU -> sltu_res(0),
-                        SGT_ALU -> sgt_res(0),
-                        SGTU_ALU -> sgtu_res(0)
                     ))
     }
 
@@ -86,9 +84,9 @@ class ALUBasic extends Module{
     val or_res = io.op1 | io.op2
     val xor_res = io.op1 ^ io.op2
     val add_res = io.op1 + io.op2
-    val sub_res = io.op1 - io.op2
-    val slt_res = Mux(io.op1.asSInt < io.op2.asSInt, 1.U, 0.U)
-    val sltu_res = Mux(io.op1 < io.op2, 1.U, 0.U)         //pseudo instruction SNEZ, if op2 === 0 return 0
+    val sub_res = alu_sub(io.op1, io.op2)
+    val slt_res =  alu_slt(io.op1, io.op2)
+    val sltu_res = alu_sltu(io.op1, io.op2)         //pseudo instruction SNEZ, if op2 === 0 return 0
     val sll_res = io.op1 << io.op2(4,0)
     val srl_res = io.op1 >> io.op2(4,0)
     val sra_res = io.op1.asSInt >> io.op2(4,0)
@@ -118,17 +116,29 @@ object ALUBasic{
   }
 }
 
+object alu_sub{
+    def apply(op1: UInt, op2:UInt):UInt = op1 - op2
+}
+
+object alu_slt{
+    def apply(op1: UInt, op2:UInt):UInt = Mux(op1.asSInt < op2.asSInt, 1.U, 0.U)
+}
+
+object alu_sltu{
+    def apply(op1: UInt, op2:UInt):UInt = Mux(op1 < op2, 1.U, 0.U) 
+}
+
 class ALUWithBranch extends Module{
 val io = IO(new ALUWithBranchIO)
 
-    val sub_res = io.op1 - io.op2
-    val slt_res = Mux(io.op1.asSInt < io.op2.asSInt, 1.U, 0.U)
-    val sltu_res = Mux(io.op1 < io.op2, 1.U, 0.U) 
+    val sub_res = alu_sub(io.op1, io.op2)
+    val slt_res = alu_slt(io.op1, io.op2)
+    val sltu_res = alu_sltu(io.op1, io.op2)
 
     val result = ALUBasic(io.op1, io.op2, io.operation)
     io.result := result
 
-    io.comp := MuxLookup(io.operation === SUB_ALU, !sub_res.orR,
+    io.comp := MuxLookup(io.operation, !sub_res.orR,
                     Seq(
                         SLT_ALU -> slt_res(0),
                         SLTU_ALU -> sltu_res(0)

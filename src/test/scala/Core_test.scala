@@ -10,7 +10,7 @@ import org.scalatest.{Matchers, FlatSpec}
 import firrtl.FileUtils
 import chisel3.experimental.BaseModule
 
-class Core_tester(c: Core[IMemory, Dataflow]) extends PeekPokeTester(c) {    
+class Core_tester(c: CoreTest[IMemory, Dataflow]) extends PeekPokeTester(c) {    
   for(cntr <- 0 until 53) {
     println(f"ioled = ${peek(c.io.ledio)}%d, uart = ${peek(c.io.uartSerialPort.tx)}%d\n")
     step(1)
@@ -28,7 +28,7 @@ class CoreTests extends FlatSpec with Matchers {
 
     iotesters.Driver.execute(
       args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-      dut = () => new Core(500, new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), true)
+      dut = () => new CoreTest(500, new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex"), true)
     ) { c =>
       new Core_tester(c)
     } should be (true)
