@@ -117,3 +117,7 @@ object CorePipelined extends App{
 object CoreNonPipelined extends App{
     (new chisel3.stage.ChiselStage).emitVerilog(new Core(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), false, new DataflowNotPipelined(false)), args)
 }
+
+object CorePipelineALUSplit extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), false, new DataflowALUSplit(false)), args)
+}

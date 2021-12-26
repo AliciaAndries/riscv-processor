@@ -46,7 +46,6 @@ class Memory(Memsize: Int = 500) extends Module {
     //only write when wen is true
     when(wen){
         mem.write(valid_addr, data, io.req.bits.mask.asBools)
-        //printf("data = %x\n", io.req.bits.data)
     }.elsewhen(ren) {
         val data = mem.read(valid_addr,ren)
         //io.resp.bits.data := Cat(data(0), data(1), data(2), data(3))    //.reverse wasnt working?

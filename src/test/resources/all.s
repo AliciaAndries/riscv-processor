@@ -7,7 +7,7 @@ _start:
 _arythmatic:
     add  x4, x2, x3     # 225 + 10 = 235
     sub  x5, x4, x3     # 235 - 10 = 225
-    srl  x6, x5, x1     # x5 >> x1(4,0) = 112   
+    srl  x6, x5, x1     # x5 >> x1(4,0) = 112
     or   x7, x6, x2     # 241
     xor  x8, x2, x1     # 224
     slli x9, x8, 0x18   # 224 << 24 = 3758096384

@@ -29,7 +29,7 @@ for i in range(0, 6):
 file1 = open('init.txt', 'w')
 file1.writelines((hex))
 
-file3 = open("/home/alicia/Documents/thesis/riscv-processor/CoreNoTest.v", "r")
+file3 = open("/home/alicia/Documents/thesis/riscv-processor/Core.v", "r")
 
 core_lines = file3.readlines()
 core_line_nr = 0
@@ -54,7 +54,7 @@ file3.close()
 
 middle_front = ["initial begin\n"]
 middle = ["end // initial\n"]
-file3 = open("/home/alicia/Documents/thesis/riscv-processor/CoreNoTest.v", "w")
+file3 = open("/home/alicia/Documents/thesis/riscv-processor/Core.v", "w")
 file3.writelines(half1 + middle_front+ hex + middle + half2)
 
 

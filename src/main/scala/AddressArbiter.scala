@@ -80,5 +80,8 @@ class AddressArbiter(DataMemSize: Int = MemorySize.BMemBytes) extends Module {
             io.address_not_in_use := true.B
         }
         io.uart_out := uart_out
+        when(io.io_req.bits.addr >= (DataMemSize * 4).U){
+            printf("out of bounds of the memory\n")
+        } 
     }
 }

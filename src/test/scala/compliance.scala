@@ -4,6 +4,7 @@ import java.io._
 import chisel3.iotesters.PeekPokeTester
 import chisel3.iotesters.ChiselFlatSpec
 import chisel3.iotesters
+import chisel3.experimental.BaseModule
 
 import scala.io.{BufferedSource, Source}
 import firrtl.FileUtils
@@ -13,7 +14,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 import java.io.{BufferedWriter, FileWriter ,PrintWriter}
 
-case class CoreTester_compliance(c: CoreTest[IMemory, Dataflow], dir: String) extends PeekPokeTester(c) {
+case class CoreTester_compliance(c: CoreTest[IMemory, DataflowALUSplit], dir: String) extends PeekPokeTester(c) {
     // PrintWriter
 
     val pw = new PrintWriter(new File("log.txt" ))
@@ -131,15 +132,15 @@ class TestCoreAll extends ChiselFlatSpec {
 
         iotesters.Driver.execute(
         args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-        dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true)
+        dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true, new DataflowALUSplit(true))
         ) { c =>
             new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-add.hex")
         } should be (true)
-        /* iotesters.Driver.execute(Array(), () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true))(testerGen = c => { 
+        /* iotesters.Driver.execute(Array(), () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-add.hex",2500), true, new DataflowALUSplit(true)))(testerGen = c => { 
             CoreTester_compliance(c)
         }) should be (true) */
     }
-"rv32ui-p-addi.hex tester using iotesters" should "be pass test." in {
+ "rv32ui-p-addi.hex tester using iotesters" should "be pass test." in {
     val targetDirName = "test_run_dir/CoreTester_compliance"
     FileUtils.makeDirectory(targetDirName)
 
@@ -147,7 +148,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-addi.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-addi.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-addi.hex")
     } should be (true)
@@ -161,7 +162,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-and.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-and.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-and.hex")
     } should be (true)
@@ -175,7 +176,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-andi.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-andi.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-andi.hex")
     } should be (true)
@@ -189,7 +190,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-auipc.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-auipc.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-auipc.hex")
     } should be (true)
@@ -203,7 +204,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-beq.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-beq.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-beq.hex")
     } should be (true)
@@ -217,7 +218,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bge.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bge.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bge.hex")
     } should be (true)
@@ -231,7 +232,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bgeu.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bgeu.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bgeu.hex")
     } should be (true)
@@ -245,7 +246,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-blt.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-blt.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-blt.hex")
     } should be (true)
@@ -259,7 +260,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bltu.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bltu.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bltu.hex")
     } should be (true)
@@ -273,7 +274,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bne.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-bne.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-bne.hex")
     } should be (true)
@@ -287,7 +288,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-fence_i.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-fence_i.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-fence_i.hex")
     } should be (true)
@@ -301,7 +302,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-jal.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-jal.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-jal.hex")
     } should be (true)
@@ -315,7 +316,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-jalr.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-jalr.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-jalr.hex")
     } should be (true)
@@ -329,7 +330,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lb.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lb.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lb.hex")
     } should be (true)
@@ -343,7 +344,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lbu.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lbu.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lbu.hex")
     } should be (true)
@@ -357,7 +358,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lh.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lh.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lh.hex")
     } should be (true)
@@ -371,7 +372,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lhu.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lhu.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lhu.hex")
     } should be (true)
@@ -385,7 +386,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lui.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lui.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lui.hex")
     } should be (true)
@@ -399,7 +400,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lw.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-lw.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-lw.hex")
     } should be (true)
@@ -413,7 +414,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-or.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-or.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-or.hex")
     } should be (true)
@@ -427,7 +428,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-ori.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-ori.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-ori.hex")
     } should be (true)
@@ -441,7 +442,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sb.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sb.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sb.hex")
     } should be (true)
@@ -455,7 +456,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sh.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sh.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sh.hex")
     } should be (true)
@@ -469,7 +470,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-simple.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-simple.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-simple.hex")
     } should be (true)
@@ -483,7 +484,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sll.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sll.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sll.hex")
     } should be (true)
@@ -497,7 +498,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-slli.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-slli.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-slli.hex")
     } should be (true)
@@ -511,7 +512,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-slt.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-slt.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-slt.hex")
     } should be (true)
@@ -525,7 +526,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-slti.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-slti.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-slti.hex")
     } should be (true)
@@ -539,7 +540,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sltiu.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sltiu.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sltiu.hex")
     } should be (true)
@@ -553,7 +554,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sltu.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sltu.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sltu.hex")
     } should be (true)
@@ -567,7 +568,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sra.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sra.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sra.hex")
     } should be (true)
@@ -581,7 +582,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-srai.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-srai.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-srai.hex")
     } should be (true)
@@ -595,7 +596,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-srl.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-srl.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-srl.hex")
     } should be (true)
@@ -609,7 +610,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-srli.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-srli.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-srli.hex")
     } should be (true)
@@ -623,7 +624,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sub.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sub.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sub.hex")
     } should be (true)
@@ -637,7 +638,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sw.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-sw.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-sw.hex")
     } should be (true)
@@ -651,7 +652,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-xor.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-xor.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-xor.hex")
     } should be (true)
@@ -665,7 +666,7 @@ class TestCoreAll extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-xori.hex",2500), true)
+    dut = () => new CoreTest(2500, new IMemory("src/test/official_resources/rv32ui-p-xori.hex",2500), true, new DataflowALUSplit(true))
     ) { c =>
         new CoreTester_compliance(c,"src/test/official_resources/rv32ui-p-xori.hex")
     } should be (true)
