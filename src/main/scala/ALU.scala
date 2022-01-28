@@ -86,7 +86,7 @@ class ALUBasic extends Module{
     val add_res = io.op1 + io.op2
     val sub_res = alu_sub(io.op1, io.op2)
     val slt_res =  alu_slt(io.op1, io.op2)
-    val sltu_res = alu_sltu(io.op1, io.op2)         //pseudo instruction SNEZ, if op2 === 0 return 0
+    val sltu_res = alu_sltu(io.op1, io.op2)
     val sll_res = io.op1 << io.op2(4,0)
     val srl_res = io.op1 >> io.op2(4,0)
     val sra_res = io.op1.asSInt >> io.op2(4,0)

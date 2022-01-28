@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import ForwardingUnit._
 
-class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait{
+class DataflowCombined(test : Boolean = false) extends Module with DataflowTrait{
     override val io = IO(new DataflowTestIO)
 
     val immGen = Module(new ImmGen)
@@ -13,7 +13,7 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
     val alu = Module(new ALUBasic)
     val branchLogic = Module(new FullBranchLogic)
     val forwardingUnit = Module(new ForwardingUnit)
-    val hazardDetection = Module(new HazardDetectionALUSplit)
+    val hazardDetection = Module(new HazardDetectionCombined)
 
     val nop = "b00000000000000000000000000110011".U(32.W)
     //halt
@@ -107,17 +107,16 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
     hazardDetection.io.s.rs2 := raddr2
     hazardDetection.io.s.rd_prev := id_ex_rd
     hazardDetection.io.a.rd_prev_prev := ex_mem_rd
+    hazardDetection.io.e.rd_prev_prev := ex_mem_rd
+    hazardDetection.io.rd_prev_prev_prev := mem_wb_rd
     hazardDetection.io.s.prev_is_load := id_ex_ldtype.orR
+    hazardDetection.io.e.prev_prev_is_load := ex_mem_ldtype.orR
+    hazardDetection.io.prev_prev_prev_is_load := mem_wb_ldtype.orR
     val is_arith = !id_ex_ldtype.orR && !id_ex_sttype.orR && !(id_ex_is_jump) && !(id_ex_bt.orR)
     hazardDetection.io.a.prev_is_arith := is_arith
     hazardDetection.io.a.is_branch := control.io.bt.orR || (control.io.PCSrc === Control.Jump)
 
     halt := hazardDetection.io.s.nop
-
-    /* when(inst =/=0.U){    
-    printf("inst = %x, rs1 = %d, rs2 = %d, rd = %d, rd_prev = %d, rd_prev_prev = %d, prev_load = %d, prev_arith = %d, is_branch = %d\n", 
-            inst, raddr1, raddr2, inst(11,7), id_ex_rd, ex_mem_rd, id_ex_ldtype.orR, is_arith, control.io.bt.orR)
-    } */
 
     val inst_halt = Mux(halt || test_halt, nop, inst)      //need to read mem on next clockcycle otherwise you get prev result  
     
@@ -147,14 +146,14 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
                                         CUR -> rs1,
                                         EX_MEM_ALU -> rs1,    //this is a nop
                                         MEM_WB -> ex_mem_aluresult,
-                                        WB_OUT -> wbdata
+                                        WB_OUT -> mem_wb_aluresult
                                     ))
     val rs2_forwarded = MuxLookup(forwarding_decode.io.reg2, rs2,
                                     Seq(
                                         CUR -> rs2,
                                         EX_MEM_ALU -> rs2,    //this is a nop
                                         MEM_WB -> ex_mem_aluresult,
-                                        WB_OUT -> wbdata
+                                        WB_OUT -> mem_wb_aluresult
                                     ))
     branchLogic.io.rs1 := rs1_forwarded
     branchLogic.io.rs2 := rs2_forwarded
@@ -172,8 +171,8 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
     id_ex_rs1_addr      := Mux(control.io.PCSrc === Control.EXC, 0.U, raddr1)
     id_ex_rs2_addr      := Mux(control.io.PCSrc === Control.EXC, 0.U, raddr2)
     id_ex_pc            := if_id_pc
-    id_ex_rs1           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs1_forwarded)
-    id_ex_rs2           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs2_forwarded)
+    id_ex_rs1           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs1)
+    id_ex_rs2           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs2)
     id_ex_immgen        := Mux(control.io.PCSrc === Control.EXC, 0.U, extended)
     id_ex_rd            := Mux(control.io.PCSrc === Control.EXC, 0.U, inst_halt(11,7))
     id_ex_aluCtrl       := Mux(control.io.PCSrc === Control.EXC, 0.U, control.io.aluCtrl)
@@ -197,14 +196,14 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
     
     // if its a load its PREV_PREV cause prev is 
     val reg_input1 = Mux(forwardingUnit.io.reg1 === WB_OUT, wb_prev_inst, 
-                            Mux(forwardingUnit.io.reg1 === MEM_WB, /* mem_wb_aluresult, */wbdata, 
+                            Mux(forwardingUnit.io.reg1 === MEM_WB, mem_wb_aluresult,
                             Mux(forwardingUnit.io.reg1 === EX_MEM_ALU, ex_mem_aluresult, id_ex_rs1)))
     val reg_input2 = Mux(forwardingUnit.io.reg2 === WB_OUT, wb_prev_inst,
-                            Mux(forwardingUnit.io.reg2 === MEM_WB, /* mem_wb_aluresult, */wbdata,
+                            Mux(forwardingUnit.io.reg2 === MEM_WB, mem_wb_aluresult,
                             Mux(forwardingUnit.io.reg2 === EX_MEM_ALU, ex_mem_aluresult, id_ex_rs2)))
 
-    val aluop1 = Mux(id_ex_op1Ctrl === Control.op1Reg, id_ex_rs1, id_ex_pc)
-    val aluop2 = Mux(id_ex_op2Ctrl === Control.op2Imm, id_ex_immgen, id_ex_rs2)
+    val aluop1 = Mux(id_ex_op1Ctrl === Control.op1Reg, reg_input1, id_ex_pc)
+    val aluop2 = Mux(id_ex_op2Ctrl === Control.op2Imm, id_ex_immgen, reg_input2)
     alu.io.op1 := aluop1
     alu.io.op2 := aluop2
     

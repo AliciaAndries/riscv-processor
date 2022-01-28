@@ -120,4 +120,12 @@ object CoreNonPipelined extends App{
 
 object CorePipelineALUSplit extends App{
     (new chisel3.stage.ChiselStage).emitVerilog(new Core(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), false, new DataflowALUSplit(false)), args)
+}   //256 if its for uart output testing
+
+object CorePipelinedRegOnly extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), false, new DataflowRegOnly(false)), args)
+}
+
+object CoreCombined extends App{
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), false, new DataflowCombined(false)), args)
 }

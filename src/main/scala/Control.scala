@@ -77,17 +77,16 @@ object Control {
             SLLI -> List(ALU.SLL_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             SRLI -> List(ALU.SRL_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             SRAI -> List(ALU.SRA_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
-            //
             ANDI -> List(ALU.AND_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             ORI -> List(ALU.OR_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             XORI -> List(ALU.XOR_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             SLTI -> List(ALU.SLT_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             SLTIU -> List(ALU.SLTU_ALU, op2Imm, op1Reg, ImmGen.I, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             //UTYPE
-            LUI -> List(ALU.XXX_ALU, op2Imm, op1Reg, ImmGen.U, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),    //ALU_res is written to wb so XXX_ALU makes op2 pass through and op2 == immGen
+            LUI -> List(ALU.XXX_ALU, op2Imm, op1Reg, ImmGen.U, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX), 
             AUIPC -> List(ALU.ADD_ALU, op2Imm, op1PC, ImmGen.U, Pl4, ST_XX, LD_XX, WB_ALU, Branch.XX),
             //Branches
-            BEQ -> List(ALU.SUB_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.EQ),      //ALU doesnt really matter, zero is always calculated, also extra thing for branch calc
+            BEQ -> List(ALU.SUB_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.EQ),
             BNE -> List(ALU.SUB_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.NE),
             BLT -> List(ALU.SLT_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.LT),
             BLTU -> List(ALU.SLTU_ALU, op2Reg, op1Reg, ImmGen.B, Br, ST_XX, LD_XX, WB_F, Branch.LTU),
@@ -99,9 +98,8 @@ object Control {
             //FENCE pretty sure dont have to do anything
             FENCE -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl4, ST_XX, LD_XX, WB_F, Branch.XX),
             //EBREAK && ECALL, need to stop the excecution I think
-            ECALL -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, Branch.XX),
-            EBREAK -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, Branch.XX)
-            
+            ECALL -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, Pl4/* EXC */, ST_XX, LD_XX, WB_F, Branch.XX),
+            EBREAK -> List(ALU.XXX_ALU, op2Reg, op1Reg, ImmGen.X, EXC, ST_XX, LD_XX, WB_F, Branch.XX)       
     )
 }
 

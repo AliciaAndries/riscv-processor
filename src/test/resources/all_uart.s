@@ -3,7 +3,7 @@ _start:
     addi x2, x0, 0xE1   # write 225 to x2
     addi x3, x0, 0xA    # write 10 to x3
     addi x16, x0, 0x18
-    addi x20, x0, 0x1A  # clkdevide should be 53
+    addi x20, x0, 0x35  # clkdevide should be 53
 
 _arythmatic:
     add  x4, x2, x3     # 225 + 10 = 235

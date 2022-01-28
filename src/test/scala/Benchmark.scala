@@ -10,7 +10,7 @@ import firrtl.FileUtils
 import java.nio.file.{Files, Paths}
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
-case class CoreTester_benchmark(c: CoreTest[IMemory, DataflowALUSplit], dir: String) extends PeekPokeTester(c) {
+case class CoreTester_benchmark(c: CoreTest[IMemory, DataflowCombined], dir: String) extends PeekPokeTester(c) {
     // PrintWriter
 
     val start = BigInt("f3470713", 16)
@@ -139,7 +139,7 @@ class Benchmarks extends ChiselFlatSpec {
 
     iotesters.Driver.execute(
     args = Array("--backend-name", "verilator", "--target-dir", targetDirName, "--top-name", "Core_tester"),
-    dut = () => new CoreTest(131072, new IMemory("src/test/official_resources/dhrystone.hex",5300), true, new DataflowALUSplit(true))
+    dut = () => new CoreTest(131072, new IMemory("src/test/official_resources/dhrystone.hex",5300), true, new DataflowCombined(true))
     ) { c =>
         new CoreTester_benchmark(c,"src/test/official_resources/dhrystone.hex")
     } should be (true)
