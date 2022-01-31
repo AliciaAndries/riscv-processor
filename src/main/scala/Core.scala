@@ -93,9 +93,13 @@ class BaseCore[T <: BaseModule with IMem, P <: BaseModule with DataflowTrait](DM
     //////////////////////////////////////        UART       //////////////////////////////////////
     uart.io.dataPort <> addressArbiter.io.uart_port
     io.uartSerialPort <> uart.io.serialPort
-    when(addressArbiter.io.uart_out.orR){
-        read_value := addressArbiter.io.uart_out
+    val prev = RegInit(false.B)
+    prev := addressArbiter.io.uart_valid
+    when(addressArbiter.io.uart_valid){
         read_valid := true.B
+    }
+    when(prev){
+        read_value := addressArbiter.io.uart_out
     }
     //////////////////////////////////////   LED operation   //////////////////////////////////////
     io.ledio := addressArbiter.io.led_io
@@ -119,7 +123,7 @@ object CoreNonPipelined extends App{
 }
 
 object CorePipelineALUSplit extends App{
-    (new chisel3.stage.ChiselStage).emitVerilog(new Core(500,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1000), false, new DataflowALUSplit(false)), args)
+    (new chisel3.stage.ChiselStage).emitVerilog(new Core(256,new IMemory("/home/alicia/Documents/thesis/riscv-processor/src/test/resources/all_uart.hex", 1700), false, new DataflowALUSplit(false)), args)
 }   //256 if its for uart output testing
 
 object CorePipelinedRegOnly extends App{

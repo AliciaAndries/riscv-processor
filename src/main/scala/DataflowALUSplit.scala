@@ -108,9 +108,17 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
     hazardDetection.io.s.rd_prev := id_ex_rd
     hazardDetection.io.a.rd_prev_prev := ex_mem_rd
     hazardDetection.io.s.prev_is_load := id_ex_ldtype.orR
+    /* hazardDetection.io.rs1 := raddr1
+    hazardDetection.io.rs2 := raddr2
+    hazardDetection.io.rd_prev := id_ex_rd
+    hazardDetection.io.rd_prev_prev := ex_mem_rd
+    hazardDetection.io.prev_is_load := id_ex_ldtype.orR */
+
     val is_arith = !id_ex_ldtype.orR && !id_ex_sttype.orR && !(id_ex_is_jump) && !(id_ex_bt.orR)
     hazardDetection.io.a.prev_is_arith := is_arith
     hazardDetection.io.a.is_branch := control.io.bt.orR || (control.io.PCSrc === Control.Jump)
+    /* hazardDetection.io.prev_is_arith := is_arith
+    hazardDetection.io.is_branch := control.io.bt.orR || (control.io.PCSrc === Control.Jump) */
 
     halt := hazardDetection.io.s.nop
 
@@ -172,8 +180,8 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
     id_ex_rs1_addr      := Mux(control.io.PCSrc === Control.EXC, 0.U, raddr1)
     id_ex_rs2_addr      := Mux(control.io.PCSrc === Control.EXC, 0.U, raddr2)
     id_ex_pc            := if_id_pc
-    id_ex_rs1           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs1_forwarded)
-    id_ex_rs2           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs2_forwarded)
+    id_ex_rs1           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs1)
+    id_ex_rs2           := Mux(control.io.PCSrc === Control.EXC, 0.U, rs2)
     id_ex_immgen        := Mux(control.io.PCSrc === Control.EXC, 0.U, extended)
     id_ex_rd            := Mux(control.io.PCSrc === Control.EXC, 0.U, inst_halt(11,7))
     id_ex_aluCtrl       := Mux(control.io.PCSrc === Control.EXC, 0.U, control.io.aluCtrl)
@@ -203,8 +211,8 @@ class DataflowALUSplit(test : Boolean = false) extends Module with DataflowTrait
                             Mux(forwardingUnit.io.reg2 === MEM_WB, /* mem_wb_aluresult, */wbdata,
                             Mux(forwardingUnit.io.reg2 === EX_MEM_ALU, ex_mem_aluresult, id_ex_rs2)))
 
-    val aluop1 = Mux(id_ex_op1Ctrl === Control.op1Reg, id_ex_rs1, id_ex_pc)
-    val aluop2 = Mux(id_ex_op2Ctrl === Control.op2Imm, id_ex_immgen, id_ex_rs2)
+    val aluop1 = Mux(id_ex_op1Ctrl === Control.op1Reg, reg_input1, id_ex_pc)
+    val aluop2 = Mux(id_ex_op2Ctrl === Control.op2Imm, id_ex_immgen, reg_input2)
     alu.io.op1 := aluop1
     alu.io.op2 := aluop2
     

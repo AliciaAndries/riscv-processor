@@ -82,6 +82,24 @@ class HazardDetectionALUSplit extends Module {
     io.s.nop := branch_nop || other_nop
 }
 
+/* class HazardDetectionALUSplit extends Module {
+    val io = IO(new HazardDetectionALUSplitIO)
+
+    val hazard_prev = Mux(io.rs1.orR, io.rd_prev === io.rs1, false.B) || Mux(io.rs2.orR, io.rd_prev === io.rs2, false.B)
+    val hazard_prev_prev = Mux(io.rs1.orR, io.rd_prev_prev === io.rs1, false.B) || Mux(io.rs2.orR, io.rd_prev_prev === io.rs2, false.B)
+
+    //val hazard_prev = io.rd_prev === io.rs1 || io.rd_prev === io.rs2
+    //val hazard_prev_prev = io.rd_prev_prev === io.rs1 || io.rd_prev_prev === io.rs2
+
+    val branch_prev_nop = hazard_prev && (io.prev_is_load || io.prev_is_arith)
+    val branch_prev_prev_nop = hazard_prev_prev && io.prev_is_load
+    
+    val branch_nop = (branch_prev_nop || branch_prev_prev_nop) && io.is_branch
+    val other_nop = (hazard_prev) && io.prev_is_load
+
+    io.nop := branch_nop || other_nop
+} */
+
 object HazardDetectionALUSplit {
     def apply(rs1: UInt, rs2: UInt, rd_prev: UInt, rd_prev_prev: UInt, prev_is_arith: Bool, prev_is_load: Bool, is_branch: Bool) = {
         val alusplit = Module(new HazardDetectionALUSplit)

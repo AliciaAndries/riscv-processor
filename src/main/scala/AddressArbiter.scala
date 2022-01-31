@@ -9,6 +9,7 @@ class AddressArbiterIO extends Bundle {
     val mem_req = Valid(new MemoryReq) 
     val led_io = Output(Bool())
     val uart_out = Output(UInt(8.W))
+    val uart_valid = Output(Bool())
     val uart_port = Flipped(new UARTPort())
     val address_not_in_use = Output(Bool())
 }
@@ -25,11 +26,14 @@ class AddressArbiter(DataMemSize: Int = MemorySize.BMemBytes) extends Module {
 
     val clockDivisor = RegInit(0.U(8.W))
     val uart_out = RegInit(0.U(8.W))
+    val uart_valid = WireDefault(false.B)
     io.uart_port.clockDivisor := clockDivisor
     io.uart_port.txQueue.valid := false.B
     io.uart_port.txQueue.bits  := 0.U
     io.uart_port.rxQueue.ready := false.B
     io.uart_out := 0.U
+    io.uart_valid := uart_valid
+    io.uart_out := uart_out
 
     io.led_io := false.B
 
@@ -46,6 +50,7 @@ class AddressArbiter(DataMemSize: Int = MemorySize.BMemBytes) extends Module {
         .elsewhen(io.io_req.bits.addr < (DataMemSize * 4 + 20).U){
             // Reads
             when(io.io_req.valid && !io.io_req.bits.mask.orR) {
+                uart_valid := true.B
                 when(io.io_req.bits.addr(4, 0) === 0x04.U) {
                     /* RX */
                     when(io.uart_port.rxQueue.valid) {
@@ -53,17 +58,17 @@ class AddressArbiter(DataMemSize: Int = MemorySize.BMemBytes) extends Module {
                     uart_out                    := io.uart_port.rxQueue.bits
                     }
                 }
-                    /* Status */
-                    .elsewhen(io.io_req.bits.addr(4, 0) === 0x08.U) {
-                    uart_out := Cat(io.uart_port.txFull, io.uart_port.rxFull, io.uart_port.txEmpty, io.uart_port.rxEmpty)
-                    }
-                    /* Clock divisor */
-                    .elsewhen(io.io_req.bits.addr(4, 0) === 0x10.U) {
-                    uart_out := clockDivisor
-                    }
-                    /* Invalid */
-                    .otherwise(uart_out := 0.U)
+                /* Status */
+                .elsewhen(io.io_req.bits.addr(4, 0) === 0x08.U) {
+                uart_out := Cat(io.uart_port.txFull, io.uart_port.rxFull, io.uart_port.txEmpty, io.uart_port.rxEmpty)
                 }
+                /* Clock divisor */
+                .elsewhen(io.io_req.bits.addr(4, 0) === 0x10.U) {
+                uart_out := clockDivisor
+                }
+                /* Invalid */
+                .otherwise{uart_valid := false.B}
+            }
             // Writes (TX)
             when(io.io_req.valid && io.io_req.bits.mask.orR) {
                 when(io.io_req.bits.addr(4, 0) === 0x04.U) {
@@ -79,7 +84,7 @@ class AddressArbiter(DataMemSize: Int = MemorySize.BMemBytes) extends Module {
         } .otherwise {
             io.address_not_in_use := true.B
         }
-        io.uart_out := uart_out
+        
         when(io.io_req.bits.addr >= (DataMemSize * 4).U){
             printf("out of bounds of the memory\n")
         } 

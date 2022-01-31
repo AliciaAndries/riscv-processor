@@ -17,14 +17,14 @@ for line in Lines:
     hex.append(line)
     count = count + 1
 
-for i in range(0, 6):
+""" for i in range(0, 6):
     for line in Lines:
         line = Lines[random.randint(0, len(Lines)-1)]
 
         line = line.rstrip()
         line = "mem[" + str(count) + "]" + "=" + "32'h" + line + ";\n"
         hex.append(line)
-        count = count + 1
+        count = count + 1 """
 
 file1 = open('init.txt', 'w')
 file1.writelines((hex))

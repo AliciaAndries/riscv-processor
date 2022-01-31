@@ -1,4 +1,4 @@
-NAME = all_uart
+NAME = neofetch_v2
 RECOURCES = /home/alicia/Documents/thesis/riscv-processor/src/test/resources
 
 nonpipelined:
