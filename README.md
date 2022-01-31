@@ -1,11 +1,10 @@
-this branch has all instrcutions and is pipelined (5 stages)
+The main branch has all the different versions of the design which are:
 
-- branch destinations are calculated in execute stage -> 2 nops when taken
-    -> could do in decode stage but then mayb between inst before and beq a nop
-- arith data hazards need 4 possible inputs for each alu operand because "write" to RegFile takes place on rising edge after write command
-    -> could be less hardware if write was on falling edge and read on rising
-- wrong mem addresses for now corrected, no fit thrown
-
+-Non-pipelined
+-Pipelined
+-Pipelined ALU split        (overall fastest)
+-Pipelined extra register   (highest clock speed)
+-Pipelined combined         (lowest area)
 
 ### Dependencies
 
